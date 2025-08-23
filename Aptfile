@@ -1,5 +1,5 @@
-build-essentials
+build-essential
+git
 gcc
-ncurses
 curl
 wget

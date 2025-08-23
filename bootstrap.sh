@@ -22,14 +22,22 @@ fi
 
 echo "===> Platform detected: $PLATFORM"
 
-if [[ "$PLATFORM" == "debian" ]]; then
+if [[ "$PLATFORM" == "Debian" ]]; then
 	echo "===> Installing Debian/Ubuntu Prerequisites"
 	"$REPO_DIR/scripts/apt.sh"
 fi
 
 echo "===> Installing Homebrew"
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-eval "$($(command -v brew) shellenv)"
+
+if [[ "$PLATFORM" == "macos" ]]; then
+	BREW_PREFIX="/opt/homebrew"
+else
+	BREW_PREFIX="/home/linuxbrew/.linuxbrew"
+	"$REPO_DIR/scripts/homebrew.sh"
+fi
+
+eval "$("$BREW_PREFIX/bin/brew" shellenv)"
 
 echo "===> Installing Brew Bundle"
 brew bundle --file="$REPO_DIR/Brewfile" --verbose

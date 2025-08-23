@@ -1,4 +1,3 @@
-brew "git"
 brew "stow"
 brew "zsh"
 brew "tmux"
