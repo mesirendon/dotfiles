@@ -28,7 +28,7 @@ if [[ "$PLATFORM" == "Debian" ]]; then
 fi
 
 echo "===> Installing Homebrew"
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 if [[ "$PLATFORM" == "macos" ]]; then
 	BREW_PREFIX="/opt/homebrew"
@@ -40,7 +40,16 @@ fi
 eval "$("$BREW_PREFIX/bin/brew" shellenv)"
 
 echo "===> Installing Brew Bundle"
-brew bundle --file="$REPO_DIR/Brewfile" --verbose
+BFILE="$REPO_DIR/Brewfile"
+TOTAL=$(grep -c '^brew ' "$BFILE")
+COUNT=0
+while read -r line; do
+	[[ "$line" =~ ^brew ]] || continue
+	pkg=$(echo "$line" | awk '{print $2}')
+	COUNT=$((COUNT+1))
+	echo "[$COUNT/$TOTAL] Installing $pkg..."
+	brew install "$pkg" || true
+done < "$BFILE"
 
 echo "===> Stowing dotfiles (dry-run)"
 ( cd "$REPO_DIR" && stow -nv git ) || true
