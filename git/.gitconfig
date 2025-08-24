@@ -7,3 +7,5 @@
 	autoSetupRemote = true
 [init]
 	defaultBranch = main
+[core]
+	editor = vim

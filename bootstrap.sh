@@ -68,7 +68,7 @@ for pkg in "${PKGS[@]}"; do
 done
 
 echo "===> 📥 Stowing dotfiles (dry-run)"
-DOTFILES=("git" "zsh" ".p10k.zsh")
+DOTFILES=("git" "zsh" "p10k")
 ( cd "$REPO_DIR" && stow -nv "${DOTFILES[@]}" ) || true
 read -p "Proceed stowing dotfiles? [y/N] " ans
 if [[ "$ans" =~ ^[Yy]$ ]]; then
