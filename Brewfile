@@ -4,3 +4,4 @@ jq
 bat
 tree
 btop
+eza

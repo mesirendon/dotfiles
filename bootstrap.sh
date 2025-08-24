@@ -29,13 +29,21 @@ if [[ "$PLATFORM" == "Debian" ]]; then
 	"$REPO_DIR/scripts/apt.sh"
 fi
 
-echo "===> 🍺 Installing Homebrew"
-NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
 if [[ "$PLATFORM" == "macos" ]]; then
 	BREW_PREFIX="/opt/homebrew"
 else
 	BREW_PREFIX="/home/linuxbrew/.linuxbrew"
+fi
+
+if [[ ! -d "$BREW_PREFIX" ]]; then
+	echo "===> 🍺 Installing Homebrew"
+	NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+else
+	printf '\t---> ✅ Homebrew is already installed\n'
+fi
+
+
+if [[ "$PLATFORM" == "Debian" ]]; then
 	"$REPO_DIR/scripts/homebrew.sh"
 fi
 
@@ -60,7 +68,7 @@ for pkg in "${PKGS[@]}"; do
 done
 
 echo "===> 📥 Stowing dotfiles (dry-run)"
-DOTFILES=("git" "zsh")
+DOTFILES=("git" "zsh" ".p10k.zsh")
 ( cd "$REPO_DIR" && stow -nv "${DOTFILES[@]}" ) || true
 read -p "Proceed stowing dotfiles? [y/N] " ans
 if [[ "$ans" =~ ^[Yy]$ ]]; then
