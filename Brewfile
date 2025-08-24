@@ -4,4 +4,3 @@ jq
 bat
 tree
 btop
-kitty
