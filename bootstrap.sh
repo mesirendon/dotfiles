@@ -2,6 +2,8 @@
 set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+sudo echo ""
+
 echo "===> Detecting OS"
 OS="$(uname -s)"
 
@@ -41,15 +43,21 @@ eval "$("$BREW_PREFIX/bin/brew" shellenv)"
 
 echo "===> Installing Brew Bundle"
 BFILE="$REPO_DIR/Brewfile"
-TOTAL=$(grep -c '^brew ' "$BFILE")
-COUNT=0
-while read -r line; do
-	[[ "$line" =~ ^brew ]] || continue
-	pkg=$(echo "$line" | awk '{print $2}')
-	COUNT=$((COUNT+1))
-	echo "[$COUNT/$TOTAL] Installing $pkg..."
-	brew install "$pkg" || true
-done < "$BFILE"
+mapfile -t PKGS < <(grep -Ev '^\s*$' "$BFILE")
+TOTAL=${#PKGS[@]}
+(( TOTAL > 0 )) || { echo "No packages in $BFILE"; exit 0; }
+
+i=0
+for pkg in "${PKGS[@]}"; do
+	i=$(( i + 1 ))
+	printf '[%d/%d] Installing %s...\n' "$i" "$TOTAL" "$pkg"
+
+	if brew list --formula --versions "$pkg" >/dev/null 2>&1; then
+		printf '\t---> already installed\n'
+	else
+		brew install --quiet "$pkg"
+	fi
+done
 
 echo "===> Stowing dotfiles (dry-run)"
 ( cd "$REPO_DIR" && stow -nv git ) || true
@@ -58,5 +66,5 @@ if [[ "$ans" =~ ^[Yy]$ ]]; then
 	( cd "$REPO_DIR" && stow -v git )
 fi
 
-exec $SHELL
 echo "===> Installation Finished"
+

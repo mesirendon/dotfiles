@@ -1,10 +1,10 @@
-brew "stow"
-brew "zsh"
-brew "tmux"
-brew "ripgrep"
-brew "fd"
-brew "jq"
-brew "yq"
-brew "bat"
-brew "tree"
-brew "btop"
+stow
+zsh
+tmux
+ripgrep
+fd
+jq
+yq
+bat
+tree
+btop
