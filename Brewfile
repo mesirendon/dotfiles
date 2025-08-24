@@ -1,9 +1,7 @@
 stow
 tmux
-ripgrep
-fd
 jq
-yq
 bat
 tree
 btop
+kitty
