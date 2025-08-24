@@ -4,7 +4,7 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 sudo echo ""
 
-echo "===> Detecting OS"
+echo "===> 💻 Detecting OS"
 OS="$(uname -s)"
 
 
@@ -25,11 +25,11 @@ fi
 echo "===> Platform detected: $PLATFORM"
 
 if [[ "$PLATFORM" == "Debian" ]]; then
-	echo "===> Installing Debian/Ubuntu Prerequisites"
+	echo "===> 🐧 Installing Debian/Ubuntu Prerequisites"
 	"$REPO_DIR/scripts/apt.sh"
 fi
 
-echo "===> Installing Homebrew"
+echo "===> 🍺 Installing Homebrew"
 NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 if [[ "$PLATFORM" == "macos" ]]; then
@@ -41,7 +41,7 @@ fi
 
 eval "$("$BREW_PREFIX/bin/brew" shellenv)"
 
-echo "===> Installing Brew Bundle"
+echo "===> 🍻 Installing Brew Bundle"
 BFILE="$REPO_DIR/Brewfile"
 mapfile -t PKGS < <(grep -Ev '^\s*$' "$BFILE")
 TOTAL=${#PKGS[@]}
@@ -50,21 +50,25 @@ TOTAL=${#PKGS[@]}
 i=0
 for pkg in "${PKGS[@]}"; do
 	i=$(( i + 1 ))
-	printf '[%d/%d] Installing %s...\n' "$i" "$TOTAL" "$pkg"
+	printf '[%d/%d] ⏳ Installing %s...\n' "$i" "$TOTAL" "$pkg"
 
 	if brew list --formula --versions "$pkg" >/dev/null 2>&1; then
-		printf '\t---> already installed\n'
+		printf '\t---> ✅ already installed\n'
 	else
 		brew install --quiet "$pkg"
 	fi
 done
 
-echo "===> Stowing dotfiles (dry-run)"
-( cd "$REPO_DIR" && stow -nv git ) || true
+echo "===> 📥 Stowing dotfiles (dry-run)"
+DOTFILES=("git" "zsh")
+( cd "$REPO_DIR" && stow -nv "${DOTFILES[@]}" ) || true
 read -p "Proceed stowing dotfiles? [y/N] " ans
 if [[ "$ans" =~ ^[Yy]$ ]]; then
-	( cd "$REPO_DIR" && stow -v git )
+	( cd "$REPO_DIR" && stow -v "${DOTFILES[@]}" )
 fi
 
-echo "===> Installation Finished"
+echo "===> 📃 Installing Oh My ZSH"
+"$REPO_DIR/scripts/oh-my-zsh.sh"
+
+echo "===> 💻 Installation Finished"
 

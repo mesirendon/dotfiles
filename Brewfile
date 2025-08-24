@@ -1,5 +1,4 @@
 stow
-zsh
 tmux
 ripgrep
 fd
