@@ -41,7 +41,7 @@ return {
       indent = { enable = true },
       ensure_installed = { "go", "gomod", "gowork", "bash", "lua", "html", "css", "javascript", "typescript", "json", "yaml", "toml", "markdown" },
     } },
-}
+},
 
 -- LSP & tooling
 { "williamboman/mason.nvim", build = ":MasonUpdate", opts = {} },
@@ -63,4 +63,4 @@ return {
     "L3MON4D3/LuaSnip",
     "saadparwaiz1/cmp_luasnip",
   },
-},
+}
