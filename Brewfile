@@ -5,3 +5,4 @@ bat
 tree
 btop
 eza
+go
