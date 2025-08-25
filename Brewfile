@@ -1,7 +1,6 @@
 tree
 go
 wget
-curl
 stow
 tmux
 fzf
