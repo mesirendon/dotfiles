@@ -1,6 +1,6 @@
 build-essential
-git
 gcc
-curl
-wget
+procps
+file
 zsh
+inkscape

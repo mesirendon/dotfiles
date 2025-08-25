@@ -20,5 +20,5 @@ if command -v tmux >/dev/null; then
 	tmux kill-session -t __tpm_bootstrap >/dev/null 2>&1 || true
 	echo "✅ tmux plugins installed"
 else
-	echo "⚠️  tmux is not installed, skipping plugin setup"
+	echo "⚠️ tmux is not installed, skipping plugin setup"
 fi

@@ -44,7 +44,7 @@ fi
 
 
 if [[ "$PLATFORM" == "Debian" ]]; then
-	"$REPO_DIR/scripts/homebrew.sh"
+	"$REPO_DIR/scripts/linuxbrew.sh"
 fi
 
 eval "$("$BREW_PREFIX/bin/brew" shellenv)"
@@ -67,6 +67,11 @@ for pkg in "${PKGS[@]}"; do
 	fi
 done
 
+if [[ "$PLATFORM" == "macos" ]]; then
+	echo "==> 🍎 Brew bundle (mac)"
+  brew bundle --file="$REPO_DIR/Brewfile.mac" --verbose || true
+fi
+
 echo "===> 📥 Stowing dotfiles (dry-run)"
 DOTFILES=("git" "zsh" "p10k" "tmux")
 ( cd "$REPO_DIR" && stow -nv "${DOTFILES[@]}" ) || true
@@ -75,7 +80,6 @@ if [[ "$ans" =~ ^[Yy]$ ]]; then
 	( cd "$REPO_DIR" && stow -v "${DOTFILES[@]}" )
 fi
 
-echo "===> 📃 Installing Oh My ZSH"
 "$REPO_DIR/scripts/oh-my-zsh.sh"
 brew install --cask font-meslo-lg-nerd-font
 
