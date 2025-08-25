@@ -40,27 +40,28 @@ return {
       highlight = { enable = true },
       indent = { enable = true },
       ensure_installed = { "go", "gomod", "gowork", "bash", "lua", "html", "css", "javascript", "typescript", "json", "yaml", "toml", "markdown" },
-    } },
-},
-
--- LSP & tooling
-{ "williamboman/mason.nvim", build = ":MasonUpdate", opts = {} },
-{ "williamboman/mason-lspconfig.nvim", opts = {} },
-{ "neovim/nvim-lspconfig" },
-{ "j-hui/fidget.nvim", opts = {}, tag = "legacy" }, -- tiny LSP status
-
--- Format on save
-{ "stevearc/conform.nvim", opts = {} },
-
--- none-ls (diagnostics/formatters via CLI tools)
-{ "nvimtools/none-ls.nvim" },
-{ "jay-babu/mason-null-ls.nvim", opts = {} },
-
--- Completion (minimal)
-{ "hrsh7th/nvim-cmp",
-  dependencies = {
-    "hrsh7th/cmp-nvim-lsp",
-    "L3MON4D3/LuaSnip",
-    "saadparwaiz1/cmp_luasnip",
+    }
   },
+
+  -- LSP & tooling
+  { "williamboman/mason.nvim", build = ":MasonUpdate", opts = {} },
+  { "williamboman/mason-lspconfig.nvim", opts = {} },
+  { "neovim/nvim-lspconfig" },
+  { "j-hui/fidget.nvim", opts = {}, tag = "legacy" }, -- tiny LSP status
+
+  -- Format on save
+  { "stevearc/conform.nvim", opts = {} },
+
+  -- none-ls (diagnostics/formatters via CLI tools)
+  { "nvimtools/none-ls.nvim" },
+  { "jay-babu/mason-null-ls.nvim", opts = {} },
+
+  -- Completion (minimal)
+  { "hrsh7th/nvim-cmp",
+    dependencies = {
+      "hrsh7th/cmp-nvim-lsp",
+      "L3MON4D3/LuaSnip",
+      "saadparwaiz1/cmp_luasnip",
+    },
+  }
 }
