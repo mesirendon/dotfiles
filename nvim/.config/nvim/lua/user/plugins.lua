@@ -46,7 +46,25 @@ return {
   -- LSP & tooling
   { "williamboman/mason.nvim", build = ":MasonUpdate", opts = {} },
   { "williamboman/mason-lspconfig.nvim", opts = {} },
-  { "neovim/nvim-lspconfig" },
+  {
+    "neovim/nvim-lspconfig",
+    dependencies = {
+        "folke/lazydev.nvim",
+        ft = "lua", -- only load on lua files
+        opts = {
+            library = {
+                -- See the configuration section for more details
+                -- Load luvit types when the `vim.uv` word is found
+                { path = "${3rd}/luv/library", words = { "vim%.uv" } },
+            },
+        },
+    },
+    config = function()
+        require('lspconfig').gopls.setup {}
+        require("lspconfig").lua_ls.setup {}
+        require("lspconfig").ts_ls.setup {}
+    end,
+  },
   { "j-hui/fidget.nvim", opts = {}, tag = "legacy" }, -- tiny LSP status
 
   -- Format on save
