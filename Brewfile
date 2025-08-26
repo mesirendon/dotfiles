@@ -20,3 +20,4 @@ direnv
 git-delta
 zoxide
 neovim
+npm

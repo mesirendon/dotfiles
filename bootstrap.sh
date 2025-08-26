@@ -51,21 +51,17 @@ eval "$("$BREW_PREFIX/bin/brew" shellenv)"
 
 echo "===> 🍻 Installing Brew Bundle"
 BFILE="$REPO_DIR/Brewfile"
-mapfile -t PKGS < <(grep -Ev '^\s*$' "$BFILE")
-TOTAL=${#PKGS[@]}
-(( TOTAL > 0 )) || { echo "No packages in $BFILE"; exit 0; }
 
 i=0
-for pkg in "${PKGS[@]}"; do
-	i=$(( i + 1 ))
-	printf '[%d/%d] ⏳ Installing %s...\n' "$i" "$TOTAL" "$pkg"
+total=$(grep -Ev '^[[:space:]]*($|#)' "$BFILE" | wc -l)
 
-	if brew list --formula --versions "$pkg" >/dev/null 2>&1; then
-		printf '\t---> ✅ already installed\n'
-	else
-		brew install --quiet "$pkg"
-	fi
-done
+while IFS= read -r pkg; do
+  [ -z "$pkg" ] && continue
+  case "$pkg" in \#*) continue ;; esac
+  i=$((i+1))
+  echo "[$i/$total] ⏳ Installing $pkg..."
+  brew install --quiet "$pkg" || true
+done < "$BFILE"
 
 if [[ "$PLATFORM" == "macos" ]]; then
 	echo "==> 🍎 Brew bundle (mac)"
