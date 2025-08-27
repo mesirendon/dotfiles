@@ -1,7 +1,5 @@
-cask "kitty"
 cask "visual-studio-code"
 cask "raycast"
 cask "slack"
 cask "docker"
-cask "zoom"
 brew "curl"
