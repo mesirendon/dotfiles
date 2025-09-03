@@ -8,7 +8,7 @@ ripgrep
 fd
 bat
 eza
-tldr
+tlrc
 jq
 yq
 ncdu
