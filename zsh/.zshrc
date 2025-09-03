@@ -72,7 +72,9 @@ alias weather="curl -4 http://wttr.in/bogota"
 alias l='eza -l --group-directories-first --git'
 alias la='eza -la --group-directories-first --git'
 alias dcomp='docker-compose'
-
+if [[ $OS_FAMILY == linux ]]; then
+	alias sysupdate='sudo apt update && sudo apt -y upgrade && sudo apt -y dist-upgrade && sudo apt -y autoremove && sudo apt -y autoclean'
+fi
 copy() {
 	if command -v pbcopy >/dev/null 2>&1; then cat | pbcopy
 	elif command -v wl-copy >/dev/null 2>&1; then wl-copy

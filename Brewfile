@@ -21,4 +21,3 @@ git-delta
 zoxide
 neovim
 npm
-ghostty
