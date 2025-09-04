@@ -37,11 +37,11 @@ return {
         vim.api.nvim_create_autocmd("FocusGained", { callback = apply })
 
         -- periodic check (every minute) without libuv objects
-        local function tick()
-          apply()
-          vim.defer_fn(tick, 60 * 1000) -- check every 60s
-        end
-        vim.api.nvim_create_autocmd("VimEnter", { callback = tick })
+        -- local function tick()
+        --   apply()
+        --   vim.defer_fn(tick, 60 * 1000) -- check every 60s
+        -- end
+        -- vim.api.nvim_create_autocmd("VimEnter", { callback = tick })
       end,
     },
   },
