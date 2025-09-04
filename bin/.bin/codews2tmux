@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+codews2tmux [path/to/file.code-workspace] [--cmd 'nvim .'] [--no-attach] [--session NAME]
+
+- Without a file, searches the current directory for *.code-workspace.
+- If multiple are found and fzf is installed, prompts to choose.
+- Session name from workspace "name" (or filename).
+- One window per workspace folder; window title from folder.name/label or basename.
+- Per-folder optional fields in your .code-workspace:
+    "x-tmux-cmd": "nvim .",  "x-tmux-skip": true
+EOF
+}
+
+require() { command -v "$1" >/dev/null 2>&1 || {
+  echo "Missing dependency: $1" >&2
+  exit 1
+}; }
+require tmux
+require jq
+command -v perl >/dev/null 2>&1 || {
+  echo "Missing dependency: perl" >&2
+  exit 1
+}
+
+# JSONC (VS Code) -> strict JSON for jq
+jsonc_to_json() {
+  perl -0777 -pe '
+    s{/\*.*?\*/}{}gs;        # remove /* ... */ comments
+    s{//[^\n\r]*}{}g;        # remove // comments
+    s/,\s*([}\]])/\1/g;      # strip trailing commas
+  ' "$1"
+}
+
+sanitize() { echo "$1" | tr ' ' '-' | tr -cd '[:alnum:]_-'; }
+
+resolve_path() {
+  local base="$1" p="$2"
+  case "$p" in
+  ~/*) p="${p/#\~/$HOME}" ;;
+  /*) ;; # absolute
+  *) p="$base/$p" ;;
+  esac
+  (cd "$p" 2>/dev/null && pwd) || echo ""
+}
+
+# ----------------- args -----------------
+WS_FILE=""
+RUN_CMD=""
+ATTACH=1
+OVERRIDE_SESSION=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  --no-attach)
+    ATTACH=0
+    shift
+    ;;
+  --cmd)
+    RUN_CMD="${2:-}"
+    shift 2
+    ;;
+  --session)
+    OVERRIDE_SESSION="${2:-}"
+    shift 2
+    ;;
+  *.code-workspace)
+    WS_FILE="$1"
+    shift
+    ;;
+  *)
+    echo "Unknown arg: $1" >&2
+    usage
+    exit 1
+    ;;
+  esac
+done
+
+# ----------------- locate workspace -----------------
+if [[ -z "${WS_FILE}" ]]; then
+  mapfile -t CANDIDATES < <(ls -1 *.code-workspace 2>/dev/null || true)
+  if [[ ${#CANDIDATES[@]} -eq 0 ]]; then
+    echo "No .code-workspace file found here." >&2
+    exit 1
+  elif [[ ${#CANDIDATES[@]} -eq 1 ]]; then
+    WS_FILE="${CANDIDATES[0]}"
+  else
+    if command -v fzf >/dev/null 2>&1; then
+      WS_FILE="$(printf '%s\n' "${CANDIDATES[@]}" | fzf --prompt='Select workspace> ')"
+      [[ -n "$WS_FILE" ]] || {
+        echo "No selection made." >&2
+        exit 1
+      }
+    else
+      echo "Multiple workspaces found and fzf not installed. Pick one:" >&2
+      printf '  %s\n' "${CANDIDATES[@]}" >&2
+      exit 1
+    fi
+  fi
+fi
+
+[[ -f "$WS_FILE" ]] || {
+  echo "Workspace file not found: $WS_FILE" >&2
+  exit 1
+}
+
+# ----------------- parse workspace (JSONC-safe) -----------------
+JSON="$(jsonc_to_json "$WS_FILE")"
+WS_DIR="$(cd "$(dirname "$WS_FILE")" && pwd)"
+
+RAW_NAME="$(jq -r '.name // empty' <<<"$JSON")"
+if [[ -z "$RAW_NAME" ]]; then
+  RAW_NAME="$(basename "$WS_FILE")"
+  RAW_NAME="${RAW_NAME%.*}"
+fi
+SESSION="${OVERRIDE_SESSION:-$(sanitize "$RAW_NAME")}"
+[[ -n "$SESSION" ]] || SESSION="ws"
+
+# Load folders as compact JSON objects
+FOLDERS_JSON=()
+while IFS= read -r line; do FOLDERS_JSON+=("$line"); done < <(jq -c '.folders[]?' <<<"$JSON")
+
+if [[ ${#FOLDERS_JSON[@]} -eq 0 ]]; then
+  echo "No folders found in workspace: $WS_FILE" >&2
+  exit 1
+fi
+
+# ----------------- create/attach session -----------------
+if tmux has-session -t "$SESSION" 2>/dev/null; then
+  echo "tmux session '$SESSION' already exists."
+  [[ $ATTACH -eq 1 ]] && exec tmux attach -t "$SESSION"
+  exit 0
+fi
+
+first=1
+win_index=0
+
+for fjson in "${FOLDERS_JSON[@]}"; do
+  PATH_VAL="$(jq -r '.path // empty' <<<"$fjson")"
+  [[ -n "$PATH_VAL" ]] || {
+    echo "Warning: folder without path, skipping."
+    continue
+  }
+
+  ABS_DIR="$(resolve_path "$WS_DIR" "$PATH_VAL")"
+  if [[ -z "$ABS_DIR" || ! -d "$ABS_DIR" ]]; then
+    echo "Warning: folder path not found, skipping: $PATH_VAL" >&2
+    continue
+  fi
+
+  WIN_NAME="$(jq -r '.name // .label // empty' <<<"$fjson")"
+  [[ -n "$WIN_NAME" ]] || WIN_NAME="$(basename "$ABS_DIR")"
+
+  FOLDER_CMD="$(jq -r '."x-tmux-cmd" // empty' <<<"$fjson")"
+  SKIP="$(jq -r '."x-tmux-skip" // false' <<<"$fjson")"
+  [[ "$SKIP" == "true" ]] && {
+    echo "Skipping window '$WIN_NAME' (x-tmux-skip)."
+    continue
+  }
+
+  if [[ $first -eq 1 ]]; then
+    tmux new-session -d -s "$SESSION" -n "$WIN_NAME" -c "$ABS_DIR"
+    if [[ -n "$FOLDER_CMD" ]]; then
+      tmux send-keys -t "$SESSION:0.0" "$FOLDER_CMD" C-m
+    elif [[ -n "$RUN_CMD" ]]; then
+      tmux send-keys -t "$SESSION:0.0" "$RUN_CMD" C-m
+    fi
+    first=0
+  else
+    tmux new-window -t "$SESSION:" -n "$WIN_NAME" -c "$ABS_DIR"
+    if [[ -n "$FOLDER_CMD" ]]; then
+      tmux send-keys -t "$SESSION:$win_index.0" "$FOLDER_CMD" C-m
+    elif [[ -n "$RUN_CMD" ]]; then
+      tmux send-keys -t "$SESSION:$win_index.0" "$RUN_CMD" C-m
+    fi
+  fi
+
+  win_index=$((win_index + 1))
+done
+
+tmux select-window -t "$SESSION:0"
+echo "Created tmux session: $SESSION"
+[[ $ATTACH -eq 1 ]] && exec tmux attach -t "$SESSION"
