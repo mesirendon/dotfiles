@@ -9,7 +9,7 @@ sudo apt install git -y
 
 # All systems
 # clone the repo
-git clone git@github.com:mesirendon/dotfiles.git
+git clone git@github.com:mesirendon/dotfiles.git ~/.dotfiles
 
 
 # enter the repo
