@@ -2,7 +2,10 @@
 set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-sudo echo ""
+sudo -v || {
+  echo "Need sudo to proceed"
+  exit 1
+}
 
 echo "===> 💻 Detecting OS"
 OS="$(uname -s)"
