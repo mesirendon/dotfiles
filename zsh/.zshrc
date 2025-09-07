@@ -63,6 +63,7 @@ export PATH="$PATH:$GOPATH/bin${GOROOT:+:$GOROOT/bin}"
 # Personal paths
 export mopath="$HOME/Documents/Projects/Modak"
 export capath="$HOME/Documents/Cacharreo"
+export mesi="$HOME/Documents/Projects/mesirendon/"
 
 # Private scope settings
 export GOPRIVATE='github.com/modak-live/*'
