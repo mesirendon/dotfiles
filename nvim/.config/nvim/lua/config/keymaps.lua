@@ -29,7 +29,7 @@ vim.api.nvim_create_autocmd("FileType", {
     end
 
     -- ==== Testing <localleader>t ==== --
-    map("n", "<localleader>tA", function()
+    map("n", "<localleader>ta", function()
       nt.run.run({ suite = true })
     end, { desc = "🧮 Go Test Run: All (suite)", buffer = buf })
 
@@ -37,7 +37,7 @@ vim.api.nvim_create_autocmd("FileType", {
       nt.run.run((vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":h")))
     end, { desc = "📦 Go Test Run: Package (dir)", buffer = buf })
 
-    map("n", "<localleader>tF", function()
+    map("n", "<localleader>tf", function()
       nt.run.run(vim.fn.expand("%"))
     end, { desc = "📄 Go Test Run: File", buffer = buf })
 
