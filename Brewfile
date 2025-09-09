@@ -22,3 +22,4 @@ zoxide
 neovim
 npm
 chafa
+asciinema
