@@ -50,7 +50,50 @@ vim.api.nvim_create_autocmd("FileType", {
       })
     end
 
+    local function term_run(argv, name)
+      vim.cmd("botright split | resize 15")
+      vim.cmd("terminal")
+      local chan = vim.b.terminal_job_id
+      if chan then
+        local line = (type(argv) == "table") and table.concat(argv, " ") or argv
+        vim.fn.chansend(chan, line .. "\n")
+      end
+      if name then
+        vim.api.nvim_buf_set_name(0, name)
+      end
+      vim.cmd("startinsert")
+    end
+
+    local function run_all_with_coverage()
+      vim.ui.input({ prompt = "Build tags (optional, space/comma-separated): " }, function(input)
+        local tags = (input and input:match("%S")) and (input:gsub(",", " "):gsub("%s+", " ")) or nil
+
+        local argv = { "go", "test", "./...", "-cover", "-count=1", "-coverprofile=coverage.out" }
+        if tags then
+          table.insert(argv, "-tags")
+          table.insert(argv, tags)
+        end
+
+        term_run(argv, "go test (coverage)")
+      end)
+    end
+
     -- ==== Testing <localleader>t ==== --
+    map(
+      "n",
+      "<localleader>tA",
+      run_all_with_coverage,
+      { desc = "🔦 Go Test Run: All (coverage, optional -tags)", buffer = buf }
+    )
+
+    map("n", "<localleader>tC", function()
+      term_run({ "go", "tool", "cover", "-func=coverage.out" }, "go coverage summary")
+    end, { desc = "📊 Coverage: Summary (coverage.out)", buffer = buf })
+
+    map("n", "<localleader>tH", function()
+      vim.fn.jobstart({ "go", "tool", "cover", "-html=coverage.out" }, { detach = true })
+    end, { desc = "🖼️ Coverage: HTML (browser)", buffer = buf })
+
     map("n", "<localleader>ta", function()
       nt.run.run({ suite = true })
     end, { desc = "🧮 Go Test Run: All (suite)", buffer = buf })
