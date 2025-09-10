@@ -14,6 +14,28 @@ map("n", "-", "<C-x>", opts)
 
 -- Go
 vim.api.nvim_create_autocmd("FileType", {
+  pattern = "gomod",
+  callback = function(ev)
+    local buf = ev.buf
+    local wkok, wk = pcall(require, "which-key")
+    if wkok then
+      wk.add({
+        { "<localleader>g", group = "Go Mod", buffer = buf },
+      })
+    end
+    map("n", "<localleader>gg", function()
+      vim.cmd("split | terminal go get -u ./...")
+      vim.cmd("startinsert")
+    end, { desc = "⬇️ Go Mod: Update Packages", buffer = buf })
+
+    map("n", "<localleader>gt", function()
+      vim.cmd("split | terminal go mod tidy")
+      vim.cmd("startinsert")
+    end, { desc = "🧹 Go Mod: Tidy", buffer = buf })
+  end,
+})
+
+vim.api.nvim_create_autocmd("FileType", {
   pattern = "go",
   callback = function(ev)
     local buf = ev.buf
