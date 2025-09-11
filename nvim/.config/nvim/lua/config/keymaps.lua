@@ -183,3 +183,38 @@ vim.api.nvim_create_autocmd("FileType", {
     end, { desc = "🔬 Inspect Variable (hover)", buffer = buf })
   end,
 })
+
+-- ==== Octo ==== --
+pcall(function()
+  local wk = require("which-key")
+  wk.add({
+    { "<leader>o", group = "Octo (🐙 GitHub)" },
+    { "<leader>op", group = "🖖🏼 PRs" },
+    { "<leader>oi", group = "⚠️ Issues" },
+  })
+end)
+
+-- PRs
+map("n", "<leader>opp", "<cmd>Octo pr list<cr>", { desc = "PR: List" })
+map("n", "<leader>opn", "<cmd>Octo pr create<cr>", { desc = "PR: Create" })
+map("n", "<leader>opv", "<cmd>Octo pr view<cr>", { desc = "PR: View" })
+map("n", "<leader>opc", "<cmd>Octo pr checkout<cr>", { desc = "PR: Checkout" })
+map("n", "<leader>opk", "<cmd>Octo pr checks<cr>", { desc = "PR: Checks" })
+map("n", "<leader>opm", "<cmd>Octo pr merge<cr>", { desc = "PR: Merge" })
+map("n", "<leader>opr", "<cmd>Octo review start<cr>", { desc = "Review: Start" })
+map("n", "<leader>ops", "<cmd>Octo review submit<cr>", { desc = "Review: Submit" })
+map("n", "<leader>opb", "<cmd>Octo pr browser<cr>", { desc = "Open in Browser" })
+
+-- Issues
+map("n", "<leader>oil", "<cmd>Octo issue list<cr>", { desc = "Issue: List" })
+map("n", "<leader>oic", "<cmd>Octo issue create<cr>", { desc = "Issue: Create" })
+map("n", "<leader>oiv", "<cmd>Octo issue view<cr>", { desc = "Issue: View Current" })
+
+-- Insert mode completion for @users and #PR/Issues inside Octo buffers
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "octo",
+  callback = function(args)
+    map("i", "@", "@<C-x><C-o>", { buffer = args.buf, silent = true })
+    map("i", "#", "#<C-x><C-o>", { buffer = args.buf, silent = true })
+  end,
+})
