@@ -1,6 +1,8 @@
 return {
+  { "ibhagwan/fzf-lua", lazy = true },
   {
     "pwntester/octo.nvim",
+    cmd = "Octo",
     requires = {
       "nvim-lua/plenary.nvim",
       "ibhagwan/fzf-lua",
@@ -14,9 +16,9 @@ return {
         default_merge_method = "commit", -- default merge method which should be used for both `Octo pr merge` and merging from picker, could be `commit`, `rebase` or `squash`
         default_delete_branch = false, -- whether to delete branch when merging pull request with either `Octo pr merge` or from picker (can be overridden with `delete`/`nodelete` argument to `Octo pr merge`)
         ssh_aliases = {}, -- SSH aliases. e.g. `ssh_aliases = {["github.com-work"] = "github.com"}`. The key part will be interpreted as an anchored Lua pattern.
-        picker = "telescope", -- or "fzf-lua" or "snacks"
+        picker = "fzf-lua",
         picker_config = {
-          use_emojis = false, -- only used by "fzf-lua" picker for now
+          use_emojis = true, -- only used by "fzf-lua" picker for now
           mappings = { -- mappings for the pickers
             open_in_browser = { lhs = "<C-b>", desc = "open issue in browser" },
             copy_url = { lhs = "<C-y>", desc = "copy url to system clipboard" },
