@@ -205,6 +205,9 @@ map("n", "<leader>opr", "<cmd>Octo review start<cr>", { desc = "Review: Start" }
 map("n", "<leader>ops", "<cmd>Octo review submit<cr>", { desc = "Review: Submit" })
 map("n", "<leader>opb", "<cmd>Octo pr browser<cr>", { desc = "Open in Browser" })
 
+map("n", "<leader>oa", "<cmd>Octo assignee add @me", { desc = "PR: Assign me" })
+map("n", "<leader>or", "<cmd>Octo reviewer add ", { desc = "PR: Add Reviewe(s)" })
+
 -- Issues
 map("n", "<leader>oil", "<cmd>Octo issue list<cr>", { desc = "Issue: List" })
 map("n", "<leader>oic", "<cmd>Octo issue create<cr>", { desc = "Issue: Create" })
