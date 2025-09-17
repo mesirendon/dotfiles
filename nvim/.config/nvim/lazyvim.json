@@ -1,6 +1,6 @@
 {
   "extras": [
-
+    "lazyvim.plugins.extras.util.gitui"
   ],
   "install_version": 8,
   "news": {
