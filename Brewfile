@@ -24,3 +24,6 @@ npm
 chafa
 asciinema
 gitui
+podman
+podman-compose
+podman-tui
