@@ -23,3 +23,4 @@ neovim
 npm
 chafa
 asciinema
+gitui
