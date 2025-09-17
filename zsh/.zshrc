@@ -27,18 +27,12 @@ typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 ## Plugins
 plugins=(
 	emoji
-	docker
 	git git-extras gitignore
 	golang
 	man node npm nvm
 	sudo 
 	zsh-navigation-tools
 )
-
-## Extra completion dirs
-if [[ $OS_FAMILY == mac ]]; then
-	[[ -d "$HOME/.docker/completions" ]] && fpath=("$HOME/.docker/completions" $fpath)
-fi
 
 ## Load Oh My Zsh
 source "$ZSH/oh-my-zsh.sh"
@@ -72,7 +66,6 @@ export GOPRIVATE='github.com/modak-live/*'
 alias weather="curl -4 http://wttr.in/bogota"
 alias l='eza -l --group-directories-first --git'
 alias la='eza -la --group-directories-first --git'
-alias dcomp='docker-compose'
 alias vim='nvim'
 if [[ $OS_FAMILY == mac ]]; then
   alias sysupdate='brew upgrade'
