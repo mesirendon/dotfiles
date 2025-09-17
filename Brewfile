@@ -27,3 +27,4 @@ gitui
 podman
 podman-compose
 podman-tui
+taskwarrior-tui
