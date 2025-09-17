@@ -75,7 +75,7 @@ alias la='eza -la --group-directories-first --git'
 alias dcomp='docker-compose'
 alias vim='nvim'
 if [[ $OS_FAMILY == linux ]]; then
-	alias sysupdate='sudo apt update && sudo apt -y upgrade && sudo apt -y dist-upgrade && sudo apt -y autoremove && sudo apt -y autoclean'
+	alias sysupdate='sudo apt update && sudo apt -y upgrade && sudo apt -y dist-upgrade && sudo apt -y autoremove && sudo apt -y autoclean && brew upgrade'
 fi
 copy() {
 	if command -v pbcopy >/dev/null 2>&1; then cat | pbcopy
