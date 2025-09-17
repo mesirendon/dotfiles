@@ -212,12 +212,3 @@ map("n", "<leader>or", ":Octo reviewer add ", { desc = "PR: Add Reviewe(s)" })
 map("n", "<leader>oil", "<cmd>Octo issue list<cr>", { desc = "Issue: List" })
 map("n", "<leader>oic", "<cmd>Octo issue create<cr>", { desc = "Issue: Create" })
 map("n", "<leader>oiv", "<cmd>Octo issue view<cr>", { desc = "Issue: View Current" })
-
--- Insert mode completion for @users and #PR/Issues inside Octo buffers
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = "octo",
-  callback = function(args)
-    map("i", "@", "@<C-x><C-o>", { buffer = args.buf, silent = true })
-    map("i", "#", "#<C-x><C-o>", { buffer = args.buf, silent = true })
-  end,
-})
