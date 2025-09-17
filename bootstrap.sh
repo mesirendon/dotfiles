@@ -70,7 +70,7 @@ if [[ "$PLATFORM" == "macos" ]]; then
 fi
 
 echo "===> 📥 Stowing dotfiles (dry-run)"
-DOTFILES=("git" "zsh" "p10k" "tmux" "nvim" "bin")
+DOTFILES=("git" "zsh" "p10k" "tmux" "nvim" "bin" "taskwarrior")
 (cd "$REPO_DIR" && stow -nv "${DOTFILES[@]}") || true
 read -p "Proceed stowing dotfiles? [y/N] " ans
 if [[ "$ans" =~ ^[Yy]$ ]]; then

@@ -1,0 +1,21 @@
+[keybindings]
+quit = ["q", "ZZ"]
+up = ["k"]
+down = ["j"]
+left = ["h"]
+right = ["l"]
+toggle_task = ["space"]
+edit = ["e"]
+modify = ["m"]
+delete = ["d", "x"]
+add = ["a"]
+filter = ["/"]
+refresh = ["r"]
+
+[theme]
+background = "default"
+foreground = "white"
+selected = "black on cyan"
+urgent = "white on red"
+due = "yellow"
+completed = "green"

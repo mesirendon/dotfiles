@@ -1,0 +1,28 @@
+# --- General settings ---
+data.location=~/.task
+default.command=next
+color=on
+calendar.weekstart=monday
+
+# --- Date formats ---
+dateformat=m/d/Y
+dateformat.annotation=m/d/Y H:N:S
+dateformat.report=m/d/Y
+
+# --- Reports ---
+report.next.columns=id,start,entry,project,tags,due,until,description,urgency
+report.next.labels=ID,Started,Entered,Project,Tags,Due,Until,Description,Urgency
+report.next.sort=urgency-
+
+# --- Urgency coefficients ---
+urgency.user.project.coefficient=1.0
+urgency.user.tag.next.coefficient=15.0
+urgency.user.tag.waiting.coefficient=-3.0
+
+# --- Colors (Nord-inspired) ---
+color.tag.next=bold white on blue
+color.tag.waiting=black on yellow
+color.due=bold white on cyan
+color.overdue=white on red
+color.completed=bold black on green
+color.active=bold white on magenta
