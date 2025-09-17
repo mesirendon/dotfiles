@@ -74,7 +74,9 @@ alias l='eza -l --group-directories-first --git'
 alias la='eza -la --group-directories-first --git'
 alias dcomp='docker-compose'
 alias vim='nvim'
-if [[ $OS_FAMILY == linux ]]; then
+if [[ $OS_FAMILY == mac ]]; then
+  alias sysupdate='brew upgrade'
+elif [[ $OS_FAMILY == linux ]]; then
 	alias sysupdate='sudo apt update && sudo apt -y upgrade && sudo apt -y dist-upgrade && sudo apt -y autoremove && sudo apt -y autoclean && brew upgrade'
 fi
 copy() {
