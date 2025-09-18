@@ -31,3 +31,4 @@ taskwarrior-tui
 tree-sitter-cli
 hugo
 imagemagick
+luarocks
