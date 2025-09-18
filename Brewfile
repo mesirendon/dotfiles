@@ -29,3 +29,4 @@ podman-compose
 podman-tui
 taskwarrior-tui
 tree-sitter-cli
+hugo
