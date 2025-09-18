@@ -64,19 +64,19 @@ while IFS= read -r pkg; do
   brew install --quiet "$pkg" || true
 done <"$BFILE"
 
-if [[ "$PLATFORM" == "macos" ]]; then
-  echo "==> 🍎 Brew bundle (mac)"
-  brew bundle --file="$REPO_DIR/Brewfile.mac" --verbose || true
-elif [[ "$PLATFORM" == "Debian" ]]; then
-  "$REPO_DIR/scripts/kitty.sh"
-fi
-
 echo "===> 📥 Stowing dotfiles (dry-run)"
 DOTFILES=("git" "zsh" "p10k" "tmux" "nvim" "bin" "taskwarrior")
 (cd "$REPO_DIR" && stow -nv "${DOTFILES[@]}") || true
 read -p "Proceed stowing dotfiles? [y/N] " ans
 if [[ "$ans" =~ ^[Yy]$ ]]; then
   (cd "$REPO_DIR" && stow -v "${DOTFILES[@]}")
+fi
+
+if [[ "$PLATFORM" == "macos" ]]; then
+  echo "==> 🍎 Brew bundle (mac)"
+  brew bundle --file="$REPO_DIR/Brewfile.mac" --verbose || true
+elif [[ "$PLATFORM" == "Debian" ]]; then
+  "$REPO_DIR/scripts/kitty.sh"
 fi
 
 "$REPO_DIR/scripts/oh-my-zsh.sh"
