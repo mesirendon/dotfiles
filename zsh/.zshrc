@@ -88,17 +88,15 @@ alias tmux='tmux -u'
 
 sysupdate() {
   if [[ $OS_FAMILY == linux ]]; then
-    brew upgrade && brew cleanup \
-      && sudo apt update && sudo apt -y upgrade && sudo apt -y dist-upgrade \
-      && sudo apt -y autoremove && sudo apt -y autoclean
+      sudo apt update && sudo apt -y upgrade && sudo apt -y dist-upgrade \
+      && sudo apt -y autoremove && sudo apt -y autoclean \
+      && brew upgrade && brew cleanup
   else
     brew upgrade && brew cleanup
   fi
 }
 
-BAT_THEME="GitHub"
-
-mkcd(){ mkdir -p -- "$1" && cd -- "$1"; }
+mkcd(){ mkdir -p -- "$1" && cd -- "$1" || return; }
 
 # Powerlevel config file
 [[ -f "$HOME/.p10k.zsh" ]] && source "$HOME/.p10k.zsh"
