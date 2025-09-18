@@ -5,16 +5,16 @@ echo "🐈‍⬛ Installing Kitty terminal emulator (Linux only)..."
 
 # --- Variables ---
 KITTY_INSTALL_DIR="${HOME}/.local/kitty.app"
-BIN_DIR="${HOME}/.bin"
-APPLICATIONS_DIR="${HOME}/.local/share/applications"
-ICONS_DIR="${HOME}/.local/share/icons"
+BIN_DIR="${HOME}/.bin/"
+APPLICATIONS_DIR="${HOME}/.local/share/applications/"
+ICONS_DIR="${HOME}/.local/share/icons/"
 DESKTOP_FILE_SOURCE="${KITTY_INSTALL_DIR}/share/applications/kitty.desktop"
 OPEN_DESKTOP_FILE_SOURCE="${KITTY_INSTALL_DIR}/share/applications/kitty-open.desktop"
 ICON_SOURCE="${KITTY_INSTALL_DIR}/share/icons/hicolor/256x256/apps/kitty.png"
 
 # --- Download and install Kitty ---
 echo "📥 Downloading kitty binary..."
-curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin dest="$KITTY_INSTALL_DIR"
+curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin dest="$KITTY_INSTALL_DIR" launch=n
 
 # --- Symlink binary ---
 mkdir -p "$BIN_DIR"
