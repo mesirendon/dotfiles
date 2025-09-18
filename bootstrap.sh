@@ -67,6 +67,8 @@ done <"$BFILE"
 if [[ "$PLATFORM" == "macos" ]]; then
   echo "==> 🍎 Brew bundle (mac)"
   brew bundle --file="$REPO_DIR/Brewfile.mac" --verbose || true
+elif [[ "$PLATFORM" == "Debian" ]]; then
+  "$REPO_DIR/scripts/kitty.sh"
 fi
 
 echo "===> 📥 Stowing dotfiles (dry-run)"
@@ -82,10 +84,6 @@ brew install --cask font-meslo-lg-nerd-font
 
 echo "===> 💿 Installing tmux plugins"
 "$REPO_DIR/scripts/tmux.sh"
-
-if [[ "$PLATFORM" == "Debian" ]]; then
-  "$REPO_DIR/scripts/kitty.sh"
-fi
 
 echo "===> 💻 Installation Finished"
 echo "===> 🔃 Restart your computer for the changes to take effect 🔃 <==="
