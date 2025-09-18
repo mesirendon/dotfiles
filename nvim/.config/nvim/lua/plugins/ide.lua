@@ -29,6 +29,9 @@ return {
   {
     "neovim/nvim-lspconfig",
     opts = {
+      folds = {
+        enabled = true,
+      },
       servers = {
         gopls = {
           settings = {

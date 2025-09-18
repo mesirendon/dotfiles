@@ -83,5 +83,9 @@ brew install --cask font-meslo-lg-nerd-font
 echo "===> 💿 Installing tmux plugins"
 "$REPO_DIR/scripts/tmux.sh"
 
+if [[ "$PLATFORM" == "Debian" ]]; then
+  "$REPO_DIR/scripts/kitty.sh"
+fi
+
 echo "===> 💻 Installation Finished"
 echo "===> 🔃 Restart your computer for the changes to take effect 🔃 <==="

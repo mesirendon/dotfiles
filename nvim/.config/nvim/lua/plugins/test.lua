@@ -6,7 +6,11 @@ return {
       "nvim-lua/plenary.nvim",
       "antoinemadec/FixCursorHold.nvim",
       "nvim-treesitter/nvim-treesitter",
-      { "fredrikaverpil/neotest-golang", version = "*" },
+      {
+        "fredrikaverpil/neotest-golang",
+        branch = "feat/treesitter-main",
+        version = "*",
+      },
     },
     config = function()
       local neotest = require("neotest")
