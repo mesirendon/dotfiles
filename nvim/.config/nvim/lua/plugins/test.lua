@@ -9,13 +9,17 @@ return {
       {
         "fredrikaverpil/neotest-golang",
         version = "*",
+        build = "go install gotest.tools/gotestsum@latest",
       },
     },
     config = function()
+      local neotest_golang_opts = { -- Specify configuration
+        runner = "gotestsum",
+      }
       local neotest = require("neotest")
       neotest.setup({
         adapters = {
-          require("neotest-golang")(),
+          require("neotest-golang")(neotest_golang_opts),
         },
         benchmark = {
           enabled = true,
