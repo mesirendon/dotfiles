@@ -8,7 +8,6 @@ return {
       "nvim-treesitter/nvim-treesitter",
       {
         "fredrikaverpil/neotest-golang",
-        branch = "feat/treesitter-main",
         version = "*",
       },
     },
