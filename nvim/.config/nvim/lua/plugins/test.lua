@@ -1,20 +1,27 @@
 return {
   {
     "nvim-neotest/neotest",
+    event = "VeryLazy",
     dependencies = {
       "nvim-neotest/nvim-nio",
       "nvim-lua/plenary.nvim",
       "antoinemadec/FixCursorHold.nvim",
       "nvim-treesitter/nvim-treesitter",
+      "nvim-neotest/neotest-plenary",
+      "nvim-neotest/neotest-vim-test",
       {
         "fredrikaverpil/neotest-golang",
         version = "*",
-        build = "go install gotest.tools/gotestsum@latest",
+        branch = "main",
       },
     },
     config = function()
-      local neotest_golang_opts = { -- Specify configuration
-        runner = "gotestsum",
+      local neotest_golang_opts = {
+        go_test_args = {
+          "-v",
+          "-race",
+          "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
+        },
       }
       local neotest = require("neotest")
       neotest.setup({
