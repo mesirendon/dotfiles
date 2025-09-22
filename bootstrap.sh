@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export HOMEBREW_NO_AUTO_UPDATE=1
 
 sudo -v || {
   echo "Need sudo to proceed"
