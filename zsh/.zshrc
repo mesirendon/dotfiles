@@ -88,6 +88,7 @@ alias tmux='tmux -u'
 # Functions
 
 sysupdate() {
+export HOMEBREW_NO_AUTO_UPDATE=1
   if [[ $OS_FAMILY == linux ]]; then
       sudo apt update && sudo apt -y upgrade && sudo apt -y dist-upgrade \
       && sudo apt -y autoremove && sudo apt -y autoclean \
