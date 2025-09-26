@@ -69,6 +69,7 @@ export mesi="$HOME/Documents/Projects/mesirendon/"
 export GOPRIVATE='github.com/modak-live/*'
 
 # Aliases
+alias rm="rm -rf"
 alias weather="curl -4 http://wttr.in/bogota"
 alias l='eza -l --group-directories-first --git'
 alias la='eza -la --group-directories-first --git'
