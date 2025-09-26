@@ -96,6 +96,20 @@ return {
     "leoluz/nvim-dap-go",
     ft = "go",
     config = function()
+      local dap = require("dap")
+
+      dap.adapters.go = {
+        type = "server",
+        port = "${port}",
+        executable = {
+          command = "dlv",
+          args = { "dap", "-l", "127.0.0.1:${port}" },
+          env = {
+            AWS_PROFILE = os.getenv("AWS_PROFILE"),
+            AWS_REGION = os.getenv("AWS_REGION"),
+          },
+        },
+      }
       require("dap-go").setup({
         dap_configurations = {
           {
@@ -114,6 +128,7 @@ return {
           },
         },
       })
+      dap.defaults.fallback.terminal_win_cmd = "10split new"
     end,
   },
   {
