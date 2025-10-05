@@ -21,6 +21,7 @@ return {
       "go",
       "gomod",
       "gosum",
+      "gotmpl",
       "gowork",
       "html",
       "http",
