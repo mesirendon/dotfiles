@@ -61,14 +61,6 @@ return {
   {
     "stevearc/conform.nvim",
     opts = {
-      format_on_save = function(bufnr)
-        local ft = vim.bo[bufnr].filetype
-        -- Skip auto-formatting for Go templates
-        if ft == "gotmpl" or ft == "gohtmltmpl" then
-          return nil
-        end
-        return { timeout_ms = 500, lsp_fallback = true }
-      end,
       formatters_by_ft = {
         go = { "gofumpt", "goimports" },
         lua = { "stylua" },
@@ -84,6 +76,7 @@ return {
       },
     },
   },
+  { "ngynkvn/gotmpl.nvim", opts = {} },
   -- 4) Linting
   {
     "mfussenegger/nvim-lint",
