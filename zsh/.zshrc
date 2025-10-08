@@ -75,6 +75,7 @@ alias l='eza -l --group-directories-first --git'
 alias la='eza -la --group-directories-first --git'
 alias dcomp='docker-compose'
 alias vim='nvim'
+alias vimreset='rm -rf ~/.cache/nvim && rm -rf ~/.local/share/nvim && rm -rf ~/.local/state/nvim'
 alias tw='taskwarrior-tui'
 copy() {
 	if command -v pbcopy >/dev/null 2>&1; then cat | pbcopy
@@ -93,9 +94,9 @@ export HOMEBREW_NO_AUTO_UPDATE=1
   if [[ $OS_FAMILY == linux ]]; then
       sudo apt update && sudo apt -y upgrade && sudo apt -y dist-upgrade \
       && sudo apt -y autoremove && sudo apt -y autoclean \
-      && brew upgrade && brew cleanup
+      && brew update && brew upgrade && brew cleanup
   else
-    brew upgrade && brew cleanup
+      brew update && brew upgrade && brew cleanup
   fi
 }
 
