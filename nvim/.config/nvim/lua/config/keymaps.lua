@@ -9,7 +9,7 @@ local opts = { silent = true, noremap = true }
 map("n", "<leader>td", "<cmd>ThemeDay<cr>", { desc = "Theme: Day" })
 map("n", "<leader>tn", "<cmd>ThemeNight<cr>", { desc = "Theme: Night" })
 
-map("n", "=", "<C-a>", opts)
+map("n", "+", "<C-a>", opts)
 map("n", "-", "<C-x>", opts)
 
 -- Go
