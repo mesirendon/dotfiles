@@ -32,3 +32,4 @@ tree-sitter-cli
 hugo
 imagemagick
 luarocks
+sops
