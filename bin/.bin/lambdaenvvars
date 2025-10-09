@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: ./fetch-lambda-env.sh <lambda-arn>
+# Usage: ./lambdaenvvars <lambda-arn>
 
 set -euo pipefail
 
