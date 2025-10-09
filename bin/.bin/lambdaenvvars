@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Usage: ./fetch-lambda-env.sh <lambda-arn>
+
+set -euo pipefail
+
+LAMBDA_ARN="${1:-}"
+OUTPUT_FILE=".env"
+
+# --- Check prerequisites ---
+if [[ -z "${AWS_PROFILE:-}" ]]; then
+  echo "⚠️  AWS_PROFILE is not set. Please export AWS_PROFILE before running this script."
+  exit 1
+fi
+
+if ! command -v aws >/dev/null 2>&1; then
+  echo "❌ aws CLI is not installed. Please install it first."
+  exit 1
+fi
+
+# --- Check login/session validity ---
+if ! aws sts get-caller-identity --profile "$AWS_PROFILE" >/dev/null 2>&1; then
+  echo "⚠️  AWS session is not valid or expired. Please run 'aws sso login --profile $AWS_PROFILE' first."
+  exit 1
+fi
+
+# --- Require Lambda ARN ---
+if [[ -z "$LAMBDA_ARN" ]]; then
+  echo "❌ Missing argument. Usage: lambdaenvvars <lambda-arn>"
+  exit 1
+fi
+
+# --- Fetch environment variables ---
+echo "ℹ️  Fetching environment variables for Lambda: $LAMBDA_ARN (profile: $AWS_PROFILE)..."
+
+JSON=$(aws lambda get-function-configuration \
+  --function-name "$LAMBDA_ARN" \
+  --query 'Environment.Variables' \
+  --output json \
+  --profile "$AWS_PROFILE")
+
+if [[ "$JSON" == "null" || -z "$JSON" ]]; then
+  echo "⚠️  No environment variables found for $LAMBDA_ARN"
+  exit 0
+fi
+
+# --- Write .env file ---
+echo "$JSON" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' >>"$OUTPUT_FILE"
+
+echo "✅ Environment variables written to $OUTPUT_FILE"
+echo "   You can load them with: source $OUTPUT_FILE"
