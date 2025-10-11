@@ -33,3 +33,4 @@ hugo
 imagemagick
 luarocks
 sops
+zellij
