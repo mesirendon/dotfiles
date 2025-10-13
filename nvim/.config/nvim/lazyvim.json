@@ -1,6 +1,7 @@
 {
   "extras": [
-
+    "lazyvim.plugins.extras.editor.aerial",
+    "lazyvim.plugins.extras.util.rest"
   ],
   "install_version": 8,
   "news": {

@@ -45,6 +45,7 @@ source "$ZSH/oh-my-zsh.sh"
 
 # User config and PATH
 export PATH="$HOME/.bin:$PATH"
+export EDITOR="nvim"
 
 # Go env: Preferring go's own values
 if command -v go >/dev/null 2>&1; then

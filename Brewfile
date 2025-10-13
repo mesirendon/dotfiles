@@ -34,3 +34,5 @@ imagemagick
 luarocks
 sops
 zellij
+mkcert
+nss
