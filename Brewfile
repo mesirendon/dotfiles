@@ -36,3 +36,4 @@ sops
 zellij
 mkcert
 nss
+markdownlint-cli2
