@@ -111,3 +111,6 @@ mkcd(){ mkdir -p -- "$1" && cd -- "$1" || return; }
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# Created by `pipx` on 2025-10-21 13:20:47
+export PATH="$PATH:/home/mesi/.local/bin"
