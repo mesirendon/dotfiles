@@ -31,7 +31,7 @@ return {
       sections = {
         {
           section = "terminal",
-          cmd = "chafa ~/.config/nvim/home.jpg --symbols block --size 60",
+          cmd = "chafa ~/.config/nvim/home.jpg --symbols block --size 56",
           height = 15,
           padding = 1,
         },
