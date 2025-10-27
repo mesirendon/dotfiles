@@ -76,7 +76,7 @@ alias l='eza -l --group-directories-first --git'
 alias la='eza -la --group-directories-first --git'
 alias dcomp='docker-compose'
 alias vim='nvim'
-alias vimreset='rm -rf ~/.cache/nvim && rm -rf ~/.local/share/nvim && rm -rf ~/.local/state/nvim'
+alias vimreset='rm -rf ~/.cache/nvim && rm -rf ~/.local/share/nvim && rm -rf ~/.local/state/nvim && rm ~/.config/nvim/lazy-lock.json'
 alias tw='taskwarrior-tui'
 copy() {
 	if command -v pbcopy >/dev/null 2>&1; then cat | pbcopy
