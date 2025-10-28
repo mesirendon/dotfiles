@@ -78,11 +78,11 @@ if [[ "$PLATFORM" == "macos" ]]; then
   brew bundle --file="$REPO_DIR/Brewfile.mac" --verbose || true
 elif [[ "$PLATFORM" == "Debian" ]]; then
   "$REPO_DIR/scripts/kitty.sh"
-  "$REPO_DIR/scripts/ghostty.sh"
+  "$REPO_DIR/scripts/ghostty-linux.sh"
 fi
 
+"$REPO_DIR/scripts/ghostty.sh"
 "$REPO_DIR/scripts/oh-my-zsh.sh"
-
 "$REPO_DIR/scripts/fonts.sh"
 
 echo "===> 💿 Installing tmux plugins"
