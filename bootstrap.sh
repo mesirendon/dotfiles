@@ -66,7 +66,7 @@ while IFS= read -r pkg; do
 done <"$BFILE"
 
 echo "===> 📥 Stowing dotfiles (dry-run)"
-DOTFILES=("git" "zsh" "p10k" "tmux" "nvim" "bin" "taskwarrior")
+DOTFILES=("git" "zsh" "p10k" "tmux" "nvim" "bin" "taskwarrior" "ghostty")
 (cd "$REPO_DIR" && stow -nv "${DOTFILES[@]}") || true
 read -p "Proceed stowing dotfiles? [y/N] " ans
 if [[ "$ans" =~ ^[Yy]$ ]]; then
@@ -78,6 +78,7 @@ if [[ "$PLATFORM" == "macos" ]]; then
   brew bundle --file="$REPO_DIR/Brewfile.mac" --verbose || true
 elif [[ "$PLATFORM" == "Debian" ]]; then
   "$REPO_DIR/scripts/kitty.sh"
+  "$REPO_DIR/scripts/ghostty.sh"
 fi
 
 "$REPO_DIR/scripts/oh-my-zsh.sh"

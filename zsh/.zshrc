@@ -78,6 +78,7 @@ alias dcomp='docker-compose'
 alias vim='nvim'
 alias vimreset='rm -rf ~/.cache/nvim && rm -rf ~/.local/share/nvim && rm -rf ~/.local/state/nvim && rm ~/.config/nvim/lazy-lock.json'
 alias tw='taskwarrior-tui'
+alias ghostty-shader='ln -sf ~/.config/ghostty/shaders/${1:-cursor_blaze.glsl} ~/.config/ghostty/shaders/shader.glsl && echo "Shader set to $1"'
 copy() {
 	if command -v pbcopy >/dev/null 2>&1; then cat | pbcopy
 	elif command -v wl-copy >/dev/null 2>&1; then wl-copy
