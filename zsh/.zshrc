@@ -78,7 +78,8 @@ alias dcomp='docker-compose'
 alias vim='nvim'
 alias vimreset='rm -rf ~/.cache/nvim && rm -rf ~/.local/share/nvim && rm -rf ~/.local/state/nvim && rm ~/.config/nvim/lazy-lock.json'
 alias tw='taskwarrior-tui'
-alias ghostty-shader='ln -sf ~/.config/ghostty/shaders/${1:-cursor_blaze.glsl} ~/.config/ghostty/shaders/shader.glsl && echo "Shader set to $1"'
+alias zj='zellij'
+alias zja='zj a $(zj ls -r| fzf --ansi --reverse | cut -d " "  -f 1)'
 copy() {
 	if command -v pbcopy >/dev/null 2>&1; then cat | pbcopy
 	elif command -v wl-copy >/dev/null 2>&1; then wl-copy
@@ -90,6 +91,11 @@ alias clip='copy <&0'
 alias tmux='tmux -u'
 
 # Functions
+ghostty-shader() {
+  local shader="${1:-cursor_blaze.glsl}"
+  ln -sf "$HOME/.config/ghostty/shaders/$shader" "$HOME/.config/ghostty/shaders/shader.glsl"
+  echo "Shader set to $shader"
+}
 
 sysupdate() {
 export HOMEBREW_NO_AUTO_UPDATE=1
