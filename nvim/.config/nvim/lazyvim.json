@@ -2,6 +2,7 @@
   "extras": [
     "lazyvim.plugins.extras.editor.aerial",
     "lazyvim.plugins.extras.lang.markdown",
+    "lazyvim.plugins.extras.lsp.none-ls",
     "lazyvim.plugins.extras.util.rest"
   ],
   "install_version": 8,

@@ -47,6 +47,7 @@ vim.api.nvim_create_autocmd("FileType", {
       wk.add({
         { "<localleader>t", group = "Tests", buffer = buf },
         { "<localleader>d", group = "Debug", buffer = buf },
+        { "<localleader>l", group = "Linter", buffer = buf },
       })
     end
 
@@ -181,6 +182,26 @@ vim.api.nvim_create_autocmd("FileType", {
     map("n", "<localleader>dv", function()
       require("dap.ui.widgets").hover()
     end, { desc = "🔬 Inspect Variable (hover)", buffer = buf })
+
+    -- ==== Linting <localleader>l ==== --
+    local lint = require("lint")
+
+    map("n", "<localleader>ll", function()
+      lint.try_lint("golangcilint")
+    end, { desc = "🔍 Lint: Run golangci-lint (manual)", buffer = buf })
+
+    map("n", "<localleader>lr", function()
+      vim.diagnostic.reset()
+      print("🧹 Cleared diagnostics")
+    end, { desc = "🧹 Lint: Reset diagnostics", buffer = buf })
+
+    map("n", "<localleader>ld", function()
+      vim.diagnostic.open_float(nil, { focus = true, scope = "cursor" })
+    end, { desc = "💡 Lint: Show diagnostic under cursor", buffer = buf })
+
+    map("n", "<localleader>lD", function()
+      vim.diagnostic.setloclist({ title = "Lint Diagnostics", open = true })
+    end, { desc = "🧭 Lint: Open diagnostics list", buffer = buf })
   end,
 })
 
