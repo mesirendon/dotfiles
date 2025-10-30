@@ -121,3 +121,5 @@ mkcd(){ mkdir -p -- "$1" && cd -- "$1" || return; }
 
 # Created by `pipx` on 2025-10-21 13:20:47
 export PATH="$PATH:/home/mesi/.local/bin"
+
+eval "$(zoxide init zsh)"
