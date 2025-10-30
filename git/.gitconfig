@@ -9,3 +9,8 @@
 	defaultBranch = main
 [core]
 	editor = nvim
+[merge]
+  tool = nvimdiff
+[mergetool]
+  prompt = false
+  keepBackup = false
