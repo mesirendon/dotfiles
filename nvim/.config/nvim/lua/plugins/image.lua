@@ -31,7 +31,7 @@ return {
         filetypes = { "typst" },
       },
       html = {
-        enabled = false,
+        enabled = true,
       },
       css = {
         enabled = false,
