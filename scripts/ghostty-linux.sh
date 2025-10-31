@@ -41,9 +41,6 @@ elif [[ "$DISTRO" == "ubuntu" ]]; then
 
 	echo "✅ Ghostty installed successfully via mkasberg/ghostty-ubuntu."
 
-# ---------------------------------------------------------------------
-# ❌ Unsupported distro
-# ---------------------------------------------------------------------
 else
 	echo "❌ Unsupported distribution: ${DISTRO}"
 	echo "This script supports Debian and Ubuntu only."
