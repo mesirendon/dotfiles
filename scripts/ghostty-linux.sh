@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "👻 Installing Ghostty terminal emulator..."
+echo "👻 Installing Ghostty terminal emulator (Debian / Ubuntu)..."
 
 if command -v lsb_release >/dev/null 2>&1; then
 	DISTRO="$(lsb_release -si | tr '[:upper:]' '[:lower:]')" # “ubuntu” or “debian”
@@ -19,6 +19,7 @@ sudo apt install -y curl gpg apt-transport-https
 
 if [[ "$DISTRO" == "debian" ]]; then
 	echo "➡️ Setting up repository from debian.griffo.io..."
+
 	if [[ ! -f /etc/apt/trusted.gpg.d/debian.griffo.io.gpg ]]; then
 		sudo sh -c 'curl -fsSL https://debian.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc \
       | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/debian.griffo.io.gpg'
@@ -30,30 +31,23 @@ if [[ "$DISTRO" == "debian" ]]; then
 	sudo apt update -y
 	sudo apt install -y ghostty
 
-	echo "✅ Ghostty installed from debian.griffo.io."
+	echo "✅ Ghostty installed successfully from debian.griffo.io."
 
 elif [[ "$DISTRO" == "ubuntu" ]]; then
-	echo "➡️ Setting up Ghostty Ubuntu package repository..."
+	echo "➡️ Installing Ghostty via mkasberg/ghostty-ubuntu installer..."
 
-	sudo mkdir -p /etc/apt/keyrings
-	curl -fsSL https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/install.sh |
-		grep "gpgkey" -A1 | grep -o "https://.*\.asc" |
-		sudo gpg --dearmor -o /etc/apt/keyrings/ghostty.gpg || true
+	# Run the official script directly
+	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/install.sh)"
 
-	echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/ghostty.gpg] \
-    https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/ ${CODENAME} main" |
-		sudo tee /etc/apt/sources.list.d/ghostty.list >/dev/null
+	echo "✅ Ghostty installed successfully via mkasberg/ghostty-ubuntu."
 
-	sudo apt update -y
-	sudo apt install -y ghostty
-
-	echo "✅ Ghostty installed via ghostty-ubuntu .deb repository."
-
+# ---------------------------------------------------------------------
+# ❌ Unsupported distro
+# ---------------------------------------------------------------------
 else
 	echo "❌ Unsupported distribution: ${DISTRO}"
-	echo "This installer supports Debian and Ubuntu only."
+	echo "This script supports Debian and Ubuntu only."
 	exit 1
 fi
 
-echo
-echo "🎉 Installation complete! Run: ghostty"
+echo "🎉 Installation complete!"
