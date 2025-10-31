@@ -1,6 +1,5 @@
 return {
   -- Themes
-  { "rmehri01/onenord.nvim", name = "onenord", lazy = false, priority = 1000 },
   { "nordtheme/vim", name = "nord", lazy = false, priority = 1000 },
 
   -- Picker / day-night logic

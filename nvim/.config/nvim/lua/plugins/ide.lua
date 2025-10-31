@@ -69,7 +69,7 @@ return {
         json = { "prettierd", "prettier" },
         yaml = { "prettierd", "prettier" },
         html = { "prettierd", "prettier" },
-        tmpl = { "templ" },
+        tmpl = { "templ", "prettierd", "prettier" },
         css = { "prettierd", "prettier" },
         sh = { "shfmt" },
         bash = { "shfmt" },
