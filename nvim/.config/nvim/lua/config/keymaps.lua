@@ -111,6 +111,10 @@ vim.api.nvim_create_autocmd("FileType", {
       nt.run.run()
     end, { desc = "🧭 Go Test Run: Nearest (subtest)", buffer = buf })
 
+    map("n", "<localleader>tv", function()
+      nt.run.run({ suite = false, strategy = "integrated", args = { "-v" } })
+    end, { desc = "📃 Run nearest Go test verbose", buffer = buf })
+
     map("n", "<localleader>tl", function()
       nt.run.run_last()
     end, { desc = "📍 Go Test Run: Last", buffer = buf })
