@@ -1,11 +1,11 @@
 return {
   "tpope/vim-abolish",
   keys = {
-    { "Crs", desc = "snake_case" },
-    { "Crc", desc = "camelCase" },
-    { "Crm", desc = "PascalCase" },
-    { "Cru", desc = "UPPER_SNAKE_CASE" },
-    { "Cr-", desc = "kebab-case" },
-    { "Crt", desc = "Title Case" },
+    { "crs", desc = "snake_case" },
+    { "crc", desc = "camelCase" },
+    { "crm", desc = "PascalCase" },
+    { "cru", desc = "UPPER_SNAKE_CASE" },
+    { "cr-", desc = "kebab-case" },
+    { "crt", desc = "Title Case" },
   },
 }
