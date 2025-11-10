@@ -13,7 +13,7 @@ git clone git@github.com:mesirendon/dotfiles.git ~/.dotfiles
 
 
 # enter the repo
-cd dotfiles
+cd .dotfiles
 
 # run the bootstrap
 # some passwords might be prompted

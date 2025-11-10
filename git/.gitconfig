@@ -19,3 +19,5 @@
   format = ssh
 [commit]
   gpgsign = true
+[gpg "ssh"]
+	program = /usr/bin/ssh-keygen
