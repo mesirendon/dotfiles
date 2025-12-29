@@ -115,6 +115,11 @@ vim.api.nvim_create_autocmd("FileType", {
       nt.run.run({ suite = false, strategy = "integrated", args = { "-v" } })
     end, { desc = "📃 Run nearest Go test verbose", buffer = buf })
 
+    map("n", "<localleader>tu", function()
+      local dir = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":h")
+      term_run({ "go", "test", dir, "-count=1", "-update" }, "go test (pkg -update)")
+    end, { desc = "📦 Go Test: Package (-update snapshots)", buffer = buf })
+
     map("n", "<localleader>tl", function()
       nt.run.run_last()
     end, { desc = "📍 Go Test Run: Last", buffer = buf })
