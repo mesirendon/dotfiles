@@ -1,22 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "👻 Installing Ghostty terminal emulator (Debian / Ubuntu)..."
+echo "👻 Installing Ghostty (Debian/Ubuntu)..."
 
+# ---- detect distro ----
 if command -v lsb_release >/dev/null 2>&1; then
-	DISTRO="$(lsb_release -si | tr '[:upper:]' '[:lower:]')" # “ubuntu” or “debian”
+	DISTRO="$(lsb_release -si | tr '[:upper:]' '[:lower:]')"
 	CODENAME="$(lsb_release -sc)"
+	VERSION_ID="$(lsb_release -sr | cut -d. -f1,2 || true)"
 else
 	. /etc/os-release
 	DISTRO="${ID,,}"
-	CODENAME="${VERSION_CODENAME:-bookworm}"
+	CODENAME="${VERSION_CODENAME:-}"
+	VERSION_ID="${VERSION_ID:-}"
 fi
 
-echo "📦 Detected distribution: ${DISTRO} (${CODENAME})"
+echo "📦 Detected: ${DISTRO} (${CODENAME:-unknown}) ${VERSION_ID:-}"
 
 sudo apt update -y
-sudo apt install -y curl gpg apt-transport-https
+sudo apt install -y curl gpg apt-transport-https ca-certificates tar xz-utils
 
+# ---- Debian: debian.griffo.io repo ----
 if [[ "$DISTRO" == "debian" ]]; then
 	echo "➡️ Setting up repository from debian.griffo.io..."
 
@@ -25,26 +29,74 @@ if [[ "$DISTRO" == "debian" ]]; then
       | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/debian.griffo.io.gpg'
 	fi
 
-	echo "deb https://debian.griffo.io/apt ${CODENAME} main" |
+	echo "deb https://debian.griffo.io/apt ${CODENAME:-bookworm} main" |
 		sudo tee /etc/apt/sources.list.d/debian.griffo.io.list >/dev/null
 
 	sudo apt update -y
 	sudo apt install -y ghostty
-
 	echo "✅ Ghostty installed successfully from debian.griffo.io."
-
-elif [[ "$DISTRO" == "ubuntu" ]]; then
-	echo "➡️ Installing Ghostty via mkasberg/ghostty-ubuntu installer..."
-
-	# Run the official script directly
-	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/install.sh)"
-
-	echo "✅ Ghostty installed successfully via mkasberg/ghostty-ubuntu."
-
-else
-	echo "❌ Unsupported distribution: ${DISTRO}"
-	echo "This script supports Debian and Ubuntu only."
-	exit 1
+	exit 0
 fi
 
-echo "🎉 Installation complete!"
+# ---- Ubuntu ----
+if [[ "$DISTRO" == "ubuntu" ]]; then
+	if [[ "${VERSION_ID:-}" == "24.04" || "${CODENAME:-}" == "noble" || "${VERSION_ID:-}" == "25.10" || "${CODENAME:-}" == "questing" ]]; then
+		echo "➡️ Installing Ghostty via mkasberg/ghostty-ubuntu (supported Ubuntu)..."
+		/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/install.sh)"
+		echo "✅ Ghostty installed successfully via mkasberg/ghostty-ubuntu."
+		exit 0
+	fi
+
+	echo "➡️ Ubuntu ${VERSION_ID:-?} not supported by mkasberg installer; building from source..."
+
+	# Building from source as the original only supports up to 25.10
+	sudo apt install -y \
+		libgtk-4-dev \
+		libgtk4-layer-shell-dev \
+		libadwaita-1-dev \
+		gettext \
+		libxml2-utils \
+		pkg-config \
+		git
+
+	ZIG_VERSION="0.15.2"
+	ARCH="$(uname -m)"
+	case "$ARCH" in
+	x86_64) ZIG_TARBALL="zig-x86_64-linux-${ZIG_VERSION}.tar.xz" ;;
+	aarch64 | arm64) ZIG_TARBALL="zig-aarch64-linux-${ZIG_VERSION}.tar.xz" ;;
+	*)
+		echo "❌ Unsupported CPU arch for this script: ${ARCH}"
+		exit 1
+		;;
+	esac
+
+	WORKDIR="$(mktemp -d)"
+	trap 'rm -rf "$WORKDIR"' EXIT
+
+	echo "⬇️ Downloading Zig ${ZIG_VERSION} (${ARCH})..."
+	curl -fsSL "https://ziglang.org/download/${ZIG_VERSION}/${ZIG_TARBALL}" -o "${WORKDIR}/${ZIG_TARBALL}"
+	mkdir -p "${WORKDIR}/zig"
+	tar -xf "${WORKDIR}/${ZIG_TARBALL}" -C "${WORKDIR}/zig" --strip-components=1
+	ZIG="${WORKDIR}/zig/zig"
+
+	echo "⬇️ Downloading Ghostty tip source tarball..."
+	curl -fsSL "https://github.com/ghostty-org/ghostty/releases/download/tip/ghostty-source.tar.gz" \
+		-o "${WORKDIR}/ghostty-source.tar.gz"
+
+	mkdir -p "${WORKDIR}/ghostty"
+	tar -xf "${WORKDIR}/ghostty-source.tar.gz" -C "${WORKDIR}/ghostty" --strip-components=1
+
+	PREFIX="${PREFIX:-$HOME/.local}"
+	echo "🛠 Building + installing to: ${PREFIX}"
+	cd "${WORKDIR}/ghostty"
+
+	"${ZIG}" build -p "${PREFIX}" -Doptimize=ReleaseFast
+
+	echo "✅ Ghostty installed (source build)."
+	echo "ℹ️ Ensure ${PREFIX}/bin is on your PATH."
+	echo '   Example: echo '\''export PATH="'"${PREFIX}"'/bin:$PATH"'\'' >> ~/.bashrc'
+	exit 0
+fi
+
+echo "❌ Unsupported distribution: ${DISTRO}"
+exit 1
