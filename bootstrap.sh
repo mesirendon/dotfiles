@@ -4,49 +4,49 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export HOMEBREW_NO_AUTO_UPDATE=1
 
 sudo -v || {
-  echo "Need sudo to proceed"
-  exit 1
+	echo "Need sudo to proceed"
+	exit 1
 }
 
 echo "===> 💻 Detecting OS"
 OS="$(uname -s)"
 
 if [[ "$OS" == "Linux" ]]; then
-  if [[ -f /etc/debian_version ]]; then
-    PLATFORM="Debian"
-  else
-    echo "Unsupported Linux Distribution"
-    exit 1
-  fi
+	if [[ -f /etc/debian_version ]]; then
+		PLATFORM="Debian"
+	else
+		echo "Unsupported Linux Distribution"
+		exit 1
+	fi
 elif [[ "$OS" == "Darwin" ]]; then
-  PLATFORM="macos"
+	PLATFORM="macos"
 else
-  echo "Unsupported OS: $OS"
-  exit 1
+	echo "Unsupported OS: $OS"
+	exit 1
 fi
 
 echo "===> Platform detected: $PLATFORM"
 
 if [[ "$PLATFORM" == "Debian" ]]; then
-  echo "===> 🐧 Installing Debian/Ubuntu Prerequisites"
-  "$REPO_DIR/scripts/apt.sh"
+	echo "===> 🐧 Installing Debian/Ubuntu Prerequisites"
+	"$REPO_DIR/scripts/apt.sh"
 fi
 
 if [[ "$PLATFORM" == "macos" ]]; then
-  BREW_PREFIX="/opt/homebrew"
+	BREW_PREFIX="/opt/homebrew"
 else
-  BREW_PREFIX="/home/linuxbrew/.linuxbrew"
+	BREW_PREFIX="/home/linuxbrew/.linuxbrew"
 fi
 
 if [[ ! -d "$BREW_PREFIX" ]]; then
-  echo "===> 🍺 Installing Homebrew"
-  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+	echo "===> 🍺 Installing Homebrew"
+	NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 else
-  printf '\t---> ✅ Homebrew is already installed\n'
+	printf '\t---> ✅ Homebrew is already installed\n'
 fi
 
 if [[ "$PLATFORM" == "Debian" ]]; then
-  "$REPO_DIR/scripts/linuxbrew.sh"
+	"$REPO_DIR/scripts/linuxbrew.sh"
 fi
 
 eval "$("$BREW_PREFIX/bin/brew" shellenv)"
@@ -58,32 +58,35 @@ i=0
 total=$(grep -Ev '^[[:space:]]*($|#)' "$BFILE" | wc -l)
 
 while IFS= read -r pkg; do
-  [ -z "$pkg" ] && continue
-  case "$pkg" in \#*) continue ;; esac
-  i=$((i + 1))
-  echo "[$i/$total] ⏳ Installing $pkg..."
-  brew install --quiet "$pkg" || true
+	[ -z "$pkg" ] && continue
+	case "$pkg" in \#*) continue ;; esac
+	i=$((i + 1))
+	echo "[$i/$total] ⏳ Installing $pkg..."
+	brew install --quiet "$pkg" || true
 done <"$BFILE"
 
 echo "===> 📥 Stowing dotfiles (dry-run)"
-DOTFILES=("git" "zsh" "p10k" "tmux" "nvim" "bin" "taskwarrior" "ghostty")
+DOTFILES=("git" "zsh" "p10k" "tmux" "nvim" "bin" "taskwarrior" "ghostty" "zellij")
 (cd "$REPO_DIR" && stow -nv "${DOTFILES[@]}") || true
 read -p "Proceed stowing dotfiles? [y/N] " ans
 if [[ "$ans" =~ ^[Yy]$ ]]; then
-  (cd "$REPO_DIR" && stow -v "${DOTFILES[@]}")
+	(cd "$REPO_DIR" && stow -v "${DOTFILES[@]}")
 fi
 
 if [[ "$PLATFORM" == "macos" ]]; then
-  echo "==> 🍎 Brew bundle (mac)"
-  brew bundle --file="$REPO_DIR/Brewfile.mac" --verbose || true
+	echo "==> 🍎 Brew bundle (mac)"
+	brew bundle --file="$REPO_DIR/Brewfile.mac" --verbose || true
 elif [[ "$PLATFORM" == "Debian" ]]; then
-  "$REPO_DIR/scripts/kitty.sh"
-  "$REPO_DIR/scripts/ghostty-linux.sh"
+	"$REPO_DIR/scripts/kitty.sh"
+	"$REPO_DIR/scripts/ghostty-linux.sh"
 fi
 
 "$REPO_DIR/scripts/ghostty.sh"
 "$REPO_DIR/scripts/oh-my-zsh.sh"
 "$REPO_DIR/scripts/fonts.sh"
+
+echo "===> 🔌 Installing zellij plugins"
+"$REPO_DIR/scripts/zellij.sh"
 
 echo "===> 💿 Installing tmux plugins"
 "$REPO_DIR/scripts/tmux.sh"
