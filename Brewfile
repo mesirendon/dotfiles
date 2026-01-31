@@ -37,3 +37,5 @@ zellij
 mkcert
 nss
 markdownlint-cli2
+plantuml
+graphviz
