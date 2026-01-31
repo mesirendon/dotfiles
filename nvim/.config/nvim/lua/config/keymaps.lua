@@ -242,3 +242,90 @@ map("n", "<leader>or", ":Octo reviewer add ", { desc = "PR: Add Reviewe(s)" })
 map("n", "<leader>oil", "<cmd>Octo issue list<cr>", { desc = "Issue: List" })
 map("n", "<leader>oic", "<cmd>Octo issue create<cr>", { desc = "Issue: Create" })
 map("n", "<leader>oiv", "<cmd>Octo issue view<cr>", { desc = "Issue: View Current" })
+
+-- ==== PlantUML ==== --
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "plantuml",
+  callback = function(ev)
+    local buf = ev.buf
+    local wkok, wk = pcall(require, "which-key")
+    if wkok then
+      wk.add({
+        { "<localleader>u", group = "PlantUML", buffer = buf },
+      })
+    end
+
+    -- Open/focus preview (most previewers refresh on :w)
+    map("n", "<localleader>up", "<cmd>PlantumlOpen<cr>", {
+      desc = "🖼️ PlantUML: Open Preview",
+      buffer = buf,
+    })
+
+    -- Force a refresh by saving (useful if you disable autosave)
+    map("n", "<localleader>ur", "<cmd>silent! write<cr>", {
+      desc = "🔄 PlantUML: Reload (save)",
+      buffer = buf,
+    })
+
+    -- Optional: export diagram
+    map("n", "<localleader>us", "<cmd>PlantumlSave<cr>", {
+      desc = "💾 PlantUML: Save/Export",
+      buffer = buf,
+    })
+
+    local function save_diagram_here()
+      local src = vim.api.nvim_buf_get_name(buf)
+      if src == "" then
+        vim.notify("Buffer has no file name. Save the .puml file first.", vim.log.levels.WARN)
+        return
+      end
+
+      -- ask format
+      local formats = { "svg", "png" }
+      vim.ui.select(formats, { prompt = "PlantUML export format:" }, function(fmt)
+        if not fmt then
+          return
+        end
+
+        local dir = vim.fn.fnamemodify(src, ":p:h")
+        local base = vim.fn.fnamemodify(src, ":t:r")
+        local out = string.format("%s/%s.%s", dir, base, fmt)
+
+        -- ensure latest content is saved before exporting
+        vim.cmd("silent! write")
+
+        -- PlantumlSave expects: :PlantumlSave {outfile} {format}
+        vim.cmd(string.format("PlantumlSave %s %s", vim.fn.fnameescape(out), fmt))
+        vim.notify("Saved: " .. out)
+      end)
+    end
+
+    -- Keybinding: export diagram next to file
+    vim.keymap.set("n", "<localleader>us", save_diagram_here, {
+      buffer = buf,
+      desc = "PlantUML: Export (choose format) to same folder",
+      silent = true,
+      noremap = true,
+    })
+
+    -- "Live reload": autosave on edit with debounce, for *.puml
+    -- This triggers preview refresh because the preview plugin updates on save.
+    local group = vim.api.nvim_create_augroup("PlantUMLLiveReload_" .. buf, { clear = true })
+
+    vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+      group = group,
+      buffer = buf,
+      callback = function()
+        vim.defer_fn(function()
+          -- buffer may have been deleted
+          if not vim.api.nvim_buf_is_valid(buf) then
+            return
+          end
+          if vim.bo[buf].modified then
+            vim.cmd("silent! write")
+          end
+        end, 600) -- debounce ms
+      end,
+    })
+  end,
+})
