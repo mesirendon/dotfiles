@@ -11,8 +11,6 @@ return {
           puml = "plantuml",
         },
       })
-
-      vim.g["plantuml_previewer#plantuml_jar_path"] = "/opt/homebrew/Cellar/plantuml/1.2026.1/libexec/plantuml.jar"
     end,
   },
 }
