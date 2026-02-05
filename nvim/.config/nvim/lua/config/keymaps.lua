@@ -226,7 +226,11 @@ end)
 
 -- PRs
 map("n", "<leader>opp", "<cmd>Octo pr list<cr>", { desc = "PR: List" })
-map("n", "<leader>opn", "<cmd>Octo pr create<cr>", { desc = "PR: Create" })
+map("n", "<leader>opn", function()
+  vim.cmd("botright split | resize 15")
+  vim.cmd("terminal gh pr create --fill --editor")
+  vim.cmd("startinsert")
+end, { desc = "PR: Create (edit body first)" })
 map("n", "<leader>opv", "<cmd>Octo pr view<cr>", { desc = "PR: View" })
 map("n", "<leader>opc", "<cmd>Octo pr checkout<cr>", { desc = "PR: Checkout" })
 map("n", "<leader>opk", "<cmd>Octo pr checks<cr>", { desc = "PR: Checks" })
