@@ -238,6 +238,7 @@ map("n", "<leader>opm", "<cmd>Octo pr merge<cr>", { desc = "PR: Merge" })
 map("n", "<leader>opr", "<cmd>Octo review start<cr>", { desc = "Review: Start" })
 map("n", "<leader>ops", "<cmd>Octo review submit<cr>", { desc = "Review: Submit" })
 map("n", "<leader>opb", "<cmd>Octo pr browser<cr>", { desc = "Open in Browser" })
+map("n", "<leader>opl", "<cmd>Octo pr reload<cr>", { desc = "Reload PR" })
 
 map("n", "<leader>oa", ":Octo assignee add mesirendon<cr>", { desc = "PR: Assign me" })
 map("n", "<leader>or", ":Octo reviewer add ", { desc = "PR: Add Reviewe(s)" })
