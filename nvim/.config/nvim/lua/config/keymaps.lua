@@ -195,9 +195,33 @@ vim.api.nvim_create_autocmd("FileType", {
     -- ==== Linting <localleader>l ==== --
     local lint = require("lint")
 
-    map("n", "<localleader>ll", function()
+    local function run_go_linter_with_feedback()
+      vim.cmd("silent! update")
       lint.try_lint("golangcilint")
-    end, { desc = "🔍 Lint: Run golangci-lint (manual)", buffer = buf })
+
+      vim.defer_fn(function()
+        if not vim.api.nvim_buf_is_valid(buf) then
+          return
+        end
+
+        local diagnostics = vim.diagnostic.get(buf)
+        local issue_count = #diagnostics
+
+        if issue_count == 0 then
+          vim.notify("✅ golangci-lint: no issues found", vim.log.levels.INFO, { title = "Lint" })
+          return
+        end
+
+        vim.notify(string.format("⚠️ golangci-lint: %d issue(s) found", issue_count), vim.log.levels.WARN, {
+          title = "Lint",
+        })
+        vim.diagnostic.setloclist({ title = "Lint Diagnostics", open = true })
+      end, 400)
+    end
+
+    map("n", "<localleader>ll", function()
+      run_go_linter_with_feedback()
+    end, { desc = "🔍 Lint: Run golangci-lint (manual + results)", buffer = buf })
 
     map("n", "<localleader>lr", function()
       vim.diagnostic.reset()

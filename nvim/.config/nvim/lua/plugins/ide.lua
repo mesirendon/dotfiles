@@ -27,6 +27,15 @@ return {
       })
     end,
   },
+  {
+    "stevearc/aerial.nvim",
+    opts = {
+      layout = {
+        min_width = 50,
+        max_width = { 80, 0.4 },
+      },
+    },
+  },
   -- 2) LSP Servers
   {
     "neovim/nvim-lspconfig",
