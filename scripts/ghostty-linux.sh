@@ -63,7 +63,7 @@ if [[ "$DISTRO" == "ubuntu" ]]; then
 	ARCH="$(uname -m)"
 	case "$ARCH" in
 	x86_64) ZIG_TARBALL="zig-x86_64-linux-${ZIG_VERSION}.tar.xz" ;;
-	aarch64 | arm64) ZIG_TARBALL="zig-aarch64-linux-${ZIG_VERSION}.tar.xz" ;;
+	aarch64 | arm64 | armv8l) ZIG_TARBALL="zig-aarch64-linux-${ZIG_VERSION}.tar.xz" ;;
 	*)
 		echo "❌ Unsupported CPU arch for this script: ${ARCH}"
 		exit 1
