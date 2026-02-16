@@ -45,11 +45,24 @@ else
 	printf '\t---> ✅ Homebrew is already installed\n'
 fi
 
+if command -v brew >/dev/null 2>&1; then
+	BREW_BIN="$(command -v brew)"
+elif [[ -x /opt/homebrew/bin/brew ]]; then
+	BREW_BIN="/opt/homebrew/bin/brew"
+elif [[ -x /usr/local/bin/brew ]]; then
+	BREW_BIN="/usr/local/bin/brew"
+elif [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+	BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
+else
+	echo "Homebrew installation failed: brew binary not found"
+	exit 1
+fi
+
 if [[ "$PLATFORM" == "Debian" ]]; then
 	"$REPO_DIR/scripts/linuxbrew.sh"
 fi
 
-eval "$("$BREW_PREFIX/bin/brew" shellenv)"
+eval "$("$BREW_BIN" shellenv)"
 
 echo "===> 🍻 Installing Brew Bundle"
 BFILE="$REPO_DIR/Brewfile"
@@ -58,11 +71,13 @@ i=0
 total=$(grep -Ev '^[[:space:]]*($|#)' "$BFILE" | wc -l)
 
 while IFS= read -r pkg; do
+	pkg="${pkg#${pkg%%[![:space:]]*}}"
+	pkg="${pkg%${pkg##*[![:space:]]}}"
 	[ -z "$pkg" ] && continue
 	case "$pkg" in \#*) continue ;; esac
 	i=$((i + 1))
 	echo "[$i/$total] ⏳ Installing $pkg..."
-	brew install --quiet "$pkg" || true
+	brew install --quiet "$pkg" </dev/null || true
 done <"$BFILE"
 
 echo "===> 📥 Stowing dotfiles (dry-run)"
