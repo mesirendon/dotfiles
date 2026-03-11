@@ -7,10 +7,14 @@ SHADERS_DIR="$CFG_DIR/shaders"
 mkdir -p "$SHADERS_DIR"
 
 # --- Fetch shaders ---
-TMP="$(mktemp -d)"
-git clone --depth 1 https://github.com/hackr-sh/ghostty-shaders "$TMP/ghostty-shaders"
-cp "$TMP/ghostty-shaders"/cursor_*.glsl "$SHADERS_DIR/" 2>/dev/null || true
-rm -rf "$TMP"
+if ls "$SHADERS_DIR"/cursor_*.glsl >/dev/null 2>&1; then
+  echo "  ✅ Ghostty shaders already installed"
+else
+  TMP="$(mktemp -d)"
+  git clone --depth 1 https://github.com/hackr-sh/ghostty-shaders "$TMP/ghostty-shaders"
+  cp "$TMP/ghostty-shaders"/cursor_*.glsl "$SHADERS_DIR/" 2>/dev/null || true
+  rm -rf "$TMP"
+fi
 
 # --- Create a default symlink ---
 DEFAULT_SHADER="$SHADERS_DIR/cursor_blaze.glsl"

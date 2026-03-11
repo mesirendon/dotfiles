@@ -59,6 +59,8 @@ if [[ "$DISTRO" == "ubuntu" ]]; then
 		pkg-config \
 		git
 
+	# NOTE: Update ZIG_VERSION when Ghostty bumps its required Zig version.
+	# Check: https://github.com/ghostty-org/ghostty/blob/main/build.zig.zon
 	ZIG_VERSION="0.15.2"
 	ARCH="$(uname -m)"
 	case "$ARCH" in
