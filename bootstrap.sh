@@ -8,8 +8,9 @@ sudo -v || {
 	exit 1
 }
 
-echo "===> 💻 Detecting OS"
+echo "===> 💻 Detecting OS and Architecture"
 OS="$(uname -s)"
+ARCH="$(uname -m)"
 
 if [[ "$OS" == "Linux" ]]; then
 	if [[ -f /etc/debian_version ]]; then
@@ -25,7 +26,7 @@ else
 	exit 1
 fi
 
-echo "===> Platform detected: $PLATFORM"
+echo "===> Platform detected: $PLATFORM ($ARCH)"
 
 if [[ "$PLATFORM" == "Debian" ]]; then
 	echo "===> 🐧 Installing Debian/Ubuntu Prerequisites"
@@ -65,7 +66,12 @@ fi
 eval "$("$BREW_BIN" shellenv)"
 
 echo "===> 🍻 Installing Brew Bundle"
-BFILE="$REPO_DIR/Brewfile"
+if [[ "$PLATFORM" == "Debian" && ("$ARCH" == "aarch64" || "$ARCH" == "arm64") ]]; then
+	BFILE="$REPO_DIR/Brewfile.arm64"
+	echo "    (using reduced Brewfile for arm64 Linux — apt covers the rest)"
+else
+	BFILE="$REPO_DIR/Brewfile"
+fi
 
 i=0
 total=$(grep -Ev '^[[:space:]]*($|#)' "$BFILE" | wc -l)
