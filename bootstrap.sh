@@ -112,5 +112,8 @@ echo "===> 🔌 Installing zellij plugins"
 echo "===> 💿 Installing tmux plugins"
 "$REPO_DIR/scripts/tmux.sh"
 
+echo "===> 🤖 Installing Claude Code"
+"$REPO_DIR/scripts/claude-code.sh"
+
 echo "===> 💻 Installation Finished"
 echo "===> 🔃 Restart your computer for the changes to take effect 🔃 <==="
