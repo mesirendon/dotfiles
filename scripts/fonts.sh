@@ -13,6 +13,7 @@ else
 	FONT_DIR="$HOME/.local/share/fonts"
 	mkdir -p "$FONT_DIR"
 
+	# NOTE: Update NERD_VERSION periodically. Check: https://github.com/ryanoasis/nerd-fonts/releases
 	NERD_VERSION="v3.3.0"
 	NERD_BASE="https://github.com/ryanoasis/nerd-fonts/releases/download/${NERD_VERSION}"
 

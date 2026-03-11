@@ -7,6 +7,8 @@ sudo -v || {
   echo "Need sudo to proceed"
   exit 1
 }
+# Keep sudo session alive for the duration of the script
+while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
 echo "===> 💻 Detecting OS and Architecture"
 OS="$(uname -s)"
@@ -34,7 +36,11 @@ if [[ "$PLATFORM" == "Debian" ]]; then
 fi
 
 if [[ "$PLATFORM" == "macos" ]]; then
-  BREW_PREFIX="/opt/homebrew"
+  if [[ "$ARCH" == "arm64" ]]; then
+    BREW_PREFIX="/opt/homebrew"
+  else
+    BREW_PREFIX="/usr/local"
+  fi
 else
   BREW_PREFIX="/home/linuxbrew/.linuxbrew"
 fi
@@ -73,21 +79,10 @@ else
   BFILE="$REPO_DIR/Brewfile"
 fi
 
-i=0
-total=$(grep -Ev '^[[:space:]]*($|#)' "$BFILE" | wc -l)
-
-while IFS= read -r pkg; do
-  pkg="${pkg#${pkg%%[![:space:]]*}}"
-  pkg="${pkg%${pkg##*[![:space:]]}}"
-  [ -z "$pkg" ] && continue
-  case "$pkg" in \#*) continue ;; esac
-  i=$((i + 1))
-  echo "[$i/$total] ⏳ Installing $pkg..."
-  brew install --quiet "$pkg" </dev/null || true
-done <"$BFILE"
+brew bundle --file="$BFILE" || true
 
 echo "===> 📥 Stowing dotfiles (dry-run)"
-DOTFILES=("git" "zsh" "p10k" "tmux" "nvim" "bin" "taskwarrior" "ghostty" "zellij")
+DOTFILES=("git" "zsh" "p10k" "nvim" "bin" "taskwarrior" "ghostty" "zellij")
 (cd "$REPO_DIR" && stow -nv "${DOTFILES[@]}") || true
 read -p "Proceed stowing dotfiles? [y/N] " ans
 if [[ "$ans" =~ ^[Yy]$ ]]; then
@@ -98,7 +93,6 @@ if [[ "$PLATFORM" == "macos" ]]; then
   echo "==> 🍎 Brew bundle (mac)"
   brew bundle --file="$REPO_DIR/Brewfile.mac" --verbose || true
 elif [[ "$PLATFORM" == "Debian" ]]; then
-  "$REPO_DIR/scripts/kitty.sh"
   "$REPO_DIR/scripts/ghostty-linux.sh"
 fi
 

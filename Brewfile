@@ -1,41 +1,41 @@
-tree
-go
-wget
-stow
-tmux
-fzf
-ripgrep
-fd
-bat
-eza
-tlrc
-jq
-yq
-ncdu
-htop
-btop
-gh
-awscli
-direnv
-git-delta
-zoxide
-neovim
-npm
-chafa
-asciinema
-gitui
-podman
-podman-compose
-podman-tui
-taskwarrior-tui
-tree-sitter-cli
-hugo
-imagemagick
-luarocks
-sops
-zellij
-mkcert
-nss
-markdownlint-cli2
-plantuml
-graphviz
+brew "tree"
+brew "go"
+brew "wget"
+brew "stow"
+brew "tmux"
+brew "fzf"
+brew "ripgrep"
+brew "fd"
+brew "bat"
+brew "eza"
+brew "tlrc"
+brew "jq"
+brew "yq"
+brew "ncdu"
+brew "htop"
+brew "btop"
+brew "gh"
+brew "awscli"
+brew "direnv"
+brew "git-delta"
+brew "zoxide"
+brew "neovim"
+brew "npm"
+brew "chafa"
+brew "asciinema"
+brew "gitui"
+brew "podman"
+brew "podman-compose"
+brew "podman-tui"
+brew "taskwarrior-tui"
+brew "tree-sitter-cli"
+brew "hugo"
+brew "imagemagick"
+brew "luarocks"
+brew "sops"
+brew "zellij"
+brew "mkcert"
+brew "nss"
+brew "markdownlint-cli2"
+brew "plantuml"
+brew "graphviz"

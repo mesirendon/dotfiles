@@ -6,8 +6,10 @@ mkdir -p "$ZELLIJ_PLUGINS_DIR"
 
 install_room() {
 	local dest="$ZELLIJ_PLUGINS_DIR/room.wasm"
-	echo "🔌 Installing Zellij plugin: room -> $dest"
-	curl -fsSL "https://github.com/rvcas/room/releases/latest/download/room.wasm" -o "$dest"
+	# NOTE: Update ROOM_VERSION periodically. Check: https://github.com/rvcas/room/releases
+	local version="v1.2.1"
+	echo "🔌 Installing Zellij plugin: room ${version} -> $dest"
+	curl -fsSL "https://github.com/rvcas/room/releases/download/${version}/room.wasm" -o "$dest"
 }
 
 install_room

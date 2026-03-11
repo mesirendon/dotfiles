@@ -6,7 +6,8 @@ echo "🐈‍⬛ Installing Kitty terminal emulator (Linux only)..."
 echo "📥 Downloading kitty binary..."
 curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin launch=n
 
-ln -sf ~/.local/kitty.app/bin/kitty ~/.local/kitty.app/bin/kitten ~/.bin/
+mkdir -p ~/.local/bin
+ln -sf ~/.local/kitty.app/bin/kitty ~/.local/kitty.app/bin/kitten ~/.local/bin/
 mkdir -p ~/.local/share/applications/
 cp ~/.local/kitty.app/share/applications/kitty.desktop ~/.local/share/applications/
 cp ~/.local/kitty.app/share/applications/kitty-open.desktop ~/.local/share/applications/
