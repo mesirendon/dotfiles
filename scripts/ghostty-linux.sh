@@ -31,9 +31,19 @@ build_from_source() {
 		pkg-config \
 		git
 
-	# NOTE: Update ZIG_VERSION when Ghostty bumps its required Zig version.
-	# Check: https://github.com/ghostty-org/ghostty/blob/main/build.zig.zon
-	ZIG_VERSION="0.15.2"
+	WORKDIR="$(mktemp -d)"
+	trap 'rm -rf "$WORKDIR"' EXIT
+
+	echo "⬇️ Downloading Ghostty source tarball..."
+	curl -fsSL "https://github.com/ghostty-org/ghostty/releases/download/tip/ghostty-source.tar.gz" \
+		-o "${WORKDIR}/ghostty-source.tar.gz"
+
+	mkdir -p "${WORKDIR}/ghostty"
+	tar -xf "${WORKDIR}/ghostty-source.tar.gz" -C "${WORKDIR}/ghostty" --strip-components=1
+
+	ZIG_VERSION="$(grep 'minimum_zig_version' "${WORKDIR}/ghostty/build.zig.zon" | sed 's/.*"\(.*\)".*/\1/')"
+	echo "🔍 Ghostty requires Zig ${ZIG_VERSION}"
+
 	case "$ARCH" in
 	x86_64) ZIG_TARBALL="zig-x86_64-linux-${ZIG_VERSION}.tar.xz" ;;
 	aarch64 | arm64 | armv8l) ZIG_TARBALL="zig-aarch64-linux-${ZIG_VERSION}.tar.xz" ;;
@@ -43,21 +53,11 @@ build_from_source() {
 		;;
 	esac
 
-	WORKDIR="$(mktemp -d)"
-	trap 'rm -rf "$WORKDIR"' EXIT
-
 	echo "⬇️ Downloading Zig ${ZIG_VERSION} (${ARCH})..."
 	curl -fsSL "https://ziglang.org/download/${ZIG_VERSION}/${ZIG_TARBALL}" -o "${WORKDIR}/${ZIG_TARBALL}"
 	mkdir -p "${WORKDIR}/zig"
 	tar -xf "${WORKDIR}/${ZIG_TARBALL}" -C "${WORKDIR}/zig" --strip-components=1
 	ZIG="${WORKDIR}/zig/zig"
-
-	echo "⬇️ Downloading Ghostty source tarball..."
-	curl -fsSL "https://github.com/ghostty-org/ghostty/releases/download/tip/ghostty-source.tar.gz" \
-		-o "${WORKDIR}/ghostty-source.tar.gz"
-
-	mkdir -p "${WORKDIR}/ghostty"
-	tar -xf "${WORKDIR}/ghostty-source.tar.gz" -C "${WORKDIR}/ghostty" --strip-components=1
 
 	PREFIX="${PREFIX:-$HOME/.local}"
 	echo "🛠 Building + installing to: ${PREFIX}"
