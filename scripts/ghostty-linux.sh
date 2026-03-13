@@ -15,41 +15,13 @@ else
 	VERSION_ID="${VERSION_ID:-}"
 fi
 
-echo "📦 Detected: ${DISTRO} (${CODENAME:-unknown}) ${VERSION_ID:-}"
+ARCH="$(uname -m)"
+echo "📦 Detected: ${DISTRO} (${CODENAME:-unknown}) ${VERSION_ID:-} [${ARCH}]"
 
-sudo apt update -y
-sudo apt install -y curl gpg apt-transport-https ca-certificates tar xz-utils
+# ---- shared: build from source ----
+build_from_source() {
+	echo "🔨 Building Ghostty from source..."
 
-# ---- Debian: debian.griffo.io repo ----
-if [[ "$DISTRO" == "debian" ]]; then
-	echo "➡️ Setting up repository from debian.griffo.io..."
-
-	if [[ ! -f /etc/apt/trusted.gpg.d/debian.griffo.io.gpg ]]; then
-		sudo sh -c 'curl -fsSL https://debian.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc \
-      | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/debian.griffo.io.gpg'
-	fi
-
-	echo "deb https://debian.griffo.io/apt ${CODENAME:-bookworm} main" |
-		sudo tee /etc/apt/sources.list.d/debian.griffo.io.list >/dev/null
-
-	sudo apt update -y
-	sudo apt install -y ghostty
-	echo "✅ Ghostty installed successfully from debian.griffo.io."
-	exit 0
-fi
-
-# ---- Ubuntu ----
-if [[ "$DISTRO" == "ubuntu" ]]; then
-	if [[ "${VERSION_ID:-}" == "24.04" || "${CODENAME:-}" == "noble" || "${VERSION_ID:-}" == "25.10" || "${CODENAME:-}" == "questing" ]]; then
-		echo "➡️ Installing Ghostty via mkasberg/ghostty-ubuntu (supported Ubuntu)..."
-		/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/install.sh)"
-		echo "✅ Ghostty installed successfully via mkasberg/ghostty-ubuntu."
-		exit 0
-	fi
-
-	echo "➡️ Ubuntu ${VERSION_ID:-?} not supported by mkasberg installer; building from source..."
-
-	# Building from source as the original only supports up to 25.10
 	sudo apt install -y \
 		libgtk-4-dev \
 		libgtk4-layer-shell-dev \
@@ -62,12 +34,11 @@ if [[ "$DISTRO" == "ubuntu" ]]; then
 	# NOTE: Update ZIG_VERSION when Ghostty bumps its required Zig version.
 	# Check: https://github.com/ghostty-org/ghostty/blob/main/build.zig.zon
 	ZIG_VERSION="0.15.2"
-	ARCH="$(uname -m)"
 	case "$ARCH" in
 	x86_64) ZIG_TARBALL="zig-x86_64-linux-${ZIG_VERSION}.tar.xz" ;;
 	aarch64 | arm64 | armv8l) ZIG_TARBALL="zig-aarch64-linux-${ZIG_VERSION}.tar.xz" ;;
 	*)
-		echo "❌ Unsupported CPU arch for this script: ${ARCH}"
+		echo "❌ Unsupported CPU arch for source build: ${ARCH}"
 		exit 1
 		;;
 	esac
@@ -81,7 +52,7 @@ if [[ "$DISTRO" == "ubuntu" ]]; then
 	tar -xf "${WORKDIR}/${ZIG_TARBALL}" -C "${WORKDIR}/zig" --strip-components=1
 	ZIG="${WORKDIR}/zig/zig"
 
-	echo "⬇️ Downloading Ghostty tip source tarball..."
+	echo "⬇️ Downloading Ghostty source tarball..."
 	curl -fsSL "https://github.com/ghostty-org/ghostty/releases/download/tip/ghostty-source.tar.gz" \
 		-o "${WORKDIR}/ghostty-source.tar.gz"
 
@@ -91,12 +62,54 @@ if [[ "$DISTRO" == "ubuntu" ]]; then
 	PREFIX="${PREFIX:-$HOME/.local}"
 	echo "🛠 Building + installing to: ${PREFIX}"
 	cd "${WORKDIR}/ghostty"
-
 	"${ZIG}" build -p "${PREFIX}" -Doptimize=ReleaseFast
 
-	echo "✅ Ghostty installed (source build)."
-	echo "ℹ️ Ensure ${PREFIX}/bin is on your PATH."
-	echo '   Example: echo '\''export PATH="'"${PREFIX}"'/bin:$PATH"'\'' >> ~/.bashrc'
+	echo "✅ Ghostty installed from source."
+	echo "ℹ️  Ensure ${PREFIX}/bin is on your PATH."
+}
+
+sudo apt update -y
+sudo apt install -y curl gpg apt-transport-https ca-certificates tar xz-utils
+
+# ---- Debian ----
+if [[ "$DISTRO" == "debian" ]]; then
+	echo "➡️ Setting up debian.griffo.io repository..."
+
+	if [[ ! -f /etc/apt/trusted.gpg.d/debian.griffo.io.gpg ]]; then
+		sudo sh -c 'curl -fsSL https://debian.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc \
+      | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/debian.griffo.io.gpg'
+	fi
+
+	echo "deb https://debian.griffo.io/apt ${CODENAME:-bookworm} main" |
+		sudo tee /etc/apt/sources.list.d/debian.griffo.io.list >/dev/null
+
+	sudo apt update -y
+
+	if sudo apt install -y ghostty 2>/dev/null; then
+		echo "✅ Ghostty installed from debian.griffo.io."
+		exit 0
+	fi
+
+	echo "⚠️  debian.griffo.io has no package for ${ARCH}; falling back to source build..."
+	build_from_source
+	exit 0
+fi
+
+# ---- Ubuntu ----
+if [[ "$DISTRO" == "ubuntu" ]]; then
+	if [[ "${VERSION_ID:-}" == "24.04" || "${CODENAME:-}" == "noble" || \
+		"${VERSION_ID:-}" == "25.10" || "${CODENAME:-}" == "questing" ]]; then
+		echo "➡️ Trying mkasberg/ghostty-ubuntu installer..."
+		if /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/install.sh)"; then
+			echo "✅ Ghostty installed via mkasberg/ghostty-ubuntu."
+			exit 0
+		fi
+		echo "⚠️  mkasberg installer failed; falling back to source build..."
+	else
+		echo "➡️ Ubuntu ${VERSION_ID:-?} not supported by mkasberg; falling back to source build..."
+	fi
+
+	build_from_source
 	exit 0
 fi
 
