@@ -28,17 +28,23 @@ return {
         --   { icon = " ", key = "q", desc = "Quit", action = ":qa" },
         -- },
       },
-      sections = {
+      sections = vim.list_extend(
+        vim.fn.filereadable(vim.fn.expand("~/.config/nvim/home.jpg")) == 1
+            and {
+              {
+                section = "terminal",
+                cmd = "chafa ~/.config/nvim/home.jpg --symbols block --size 56",
+                height = 15,
+                padding = 1,
+              },
+            }
+          or {},
         {
-          section = "terminal",
-          cmd = "chafa ~/.config/nvim/home.jpg --symbols block --size 56",
-          height = 15,
-          padding = 1,
-        },
-        { section = "header" },
-        { section = "keys", gap = 1, padding = 1 },
-        { section = "startup" },
-      },
+          { section = "header" },
+          { section = "keys", gap = 1, padding = 1 },
+          { section = "startup" },
+        }
+      ),
     },
   },
 }

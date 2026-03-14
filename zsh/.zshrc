@@ -44,6 +44,10 @@ if [[ $OS_FAMILY == mac ]]; then
 	[[ -d "$HOME/.docker/completions" ]] && fpath=("$HOME/.docker/completions" $fpath)
 fi
 
+## nvm (if installed)
+export NVM_DIR="$HOME/.nvm"
+[[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+
 ## Load Oh My Zsh
 source "$ZSH/oh-my-zsh.sh"
 
@@ -74,7 +78,7 @@ export mesi="$HOME/Documents/Projects/mesirendon/"
 export GOPRIVATE='github.com/modak-live/*'
 
 # Aliases
-alias rm="rm -rf"
+alias rm="rm -i"
 alias weather="curl -4 http://wttr.in/bogota"
 alias l='eza -l --group-directories-first --git'
 alias la='eza -la --group-directories-first --git'

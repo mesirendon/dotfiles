@@ -5,10 +5,6 @@
 local map = vim.keymap.set
 local opts = { silent = true, noremap = true }
 
--- Quick theme toggling
-map("n", "<leader>td", "<cmd>ThemeDay<cr>", { desc = "Theme: Day" })
-map("n", "<leader>tn", "<cmd>ThemeNight<cr>", { desc = "Theme: Night" })
-
 map("n", "+", "<C-a>", opts)
 map("n", "-", "<C-x>", opts)
 
@@ -142,7 +138,7 @@ vim.api.nvim_create_autocmd("FileType", {
       dap.toggle_breakpoint()
     end, { desc = "⛔️ Breakpoint: Toggle", buffer = buf })
 
-    map("n", "<localleader?dB", function()
+    map("n", "<localleader>dB", function()
       vim.ui.input({ prompt = "Breakpoint condition: " }, function(cond)
         if cond and #cond > 0 then
           dap.set_breakpoint(cond)

@@ -24,6 +24,9 @@ return {
         "bash-language-server",
         "shfmt",
         "shellcheck",
+        -- YAML / Docker
+        "yaml-language-server",
+        "docker-langserver",
       })
     end,
   },
@@ -48,13 +51,33 @@ return {
           settings = {
             gopls = {
               gofumpt = true,
-              analyses = { unusedparams = true, shadow = true },
+              analyses = { unusedparams = true, shadow = true, unusedwrite = true, useany = true },
               staticcheck = true,
+              hints = {
+                parameterNames = true,
+                assignVariableTypes = true,
+                constantValues = true,
+                functionTypeParameters = true,
+              },
             },
           },
         },
         vtsls = {},
         bashls = {},
+        yamlls = {
+          settings = {
+            yaml = {
+              schemas = {
+                ["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*.yml",
+                ["https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json"] = "docker-compose*.yml",
+              },
+              validate = true,
+              hover = true,
+              completion = true,
+            },
+          },
+        },
+        dockerls = {},
         lua_ls = {
           settings = {
             Lua = {
