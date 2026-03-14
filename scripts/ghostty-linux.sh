@@ -97,7 +97,9 @@ fi
 
 # ---- Ubuntu ----
 if [[ "$DISTRO" == "ubuntu" ]]; then
-	if [[ "${VERSION_ID:-}" == "24.04" || "${CODENAME:-}" == "noble" || \
+	if [[ "${VERSION_ID:-}" == "22.04" || "${CODENAME:-}" == "jammy" || \
+		"${VERSION_ID:-}" == "24.04" || "${CODENAME:-}" == "noble" || \
+		"${VERSION_ID:-}" == "25.04" || "${CODENAME:-}" == "plucky" || \
 		"${VERSION_ID:-}" == "25.10" || "${CODENAME:-}" == "questing" ]]; then
 		echo "➡️ Trying mkasberg/ghostty-ubuntu installer..."
 		if /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/install.sh)"; then

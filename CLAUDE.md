@@ -62,9 +62,8 @@ stow -Dv <package>
 
 ## Package Management
 
-- **Debian/Ubuntu**: `Aptfile` (installed via `apt`)
-- **All platforms (x86_64)**: `Brewfile` (installed via Homebrew)
-- **arm64 Linux**: `Brewfile.arm64` (reduced set; apt covers what Homebrew doesn't build for arm64)
+- **Debian/Ubuntu**: `Aptfile` (system-level packages: build tools, zsh, git, gpg, GUI apps)
+- **All platforms**: `Brewfile` (all CLI tools — single source of truth across macOS and Linux, both amd64 and arm64)
 - **macOS only**: `Brewfile.mac` (GUI apps and macOS-specific tools via casks)
 
 When adding a new tool, update the appropriate file(s) based on platform availability.
@@ -75,8 +74,7 @@ When adding a new tool, update the appropriate file(s) based on platform availab
 .dotfiles/
 ├── bootstrap.sh        # Main entry point
 ├── Aptfile             # apt packages (Debian/Ubuntu)
-├── Brewfile            # Homebrew formulae (all platforms)
-├── Brewfile.arm64      # Reduced Homebrew set for arm64 Linux
+├── Brewfile            # Homebrew formulae (all platforms and architectures)
 ├── Brewfile.mac        # macOS-only casks and formulae
 ├── scripts/            # Modular install scripts
 ├── git/                # Stow package
@@ -89,9 +87,58 @@ When adding a new tool, update the appropriate file(s) based on platform availab
 └── p10k/               # Stow package
 ```
 
+## Neovim Architecture
+
+LazyVim is the base distribution (`branch = "stable"`). Custom config lives under `nvim/.config/nvim/lua/`:
+
+| File/Dir | Purpose |
+|---|---|
+| `config/lazy.lua` | Lazy.nvim bootstrap; LazyVim pinned to `stable` branch |
+| `config/extras.lua` | LazyVim extras (nvim-cmp, mini-surround, aerial, markdown, rest, claudecode) |
+| `config/keymaps.lua` | All custom keymaps; Go/GoMod/PlantUML groups registered with which-key |
+| `config/options.lua` | Editor options (`fixendofline`); **do not re-add `autowriteall`** — auto-save is handled by `autocmds.lua` |
+| `config/autocmds.lua` | Smart auto-save on `BufLeave`/`WinLeave`/`FocusLost` (skips non-file buffers) |
+| `plugins/ide.lua` | Mason tools, LSP servers, conform.nvim formatters, nvim-lint, DAP/dap-ui for Go |
+| `plugins/treesitter.lua` | Parser list; uses `v:lua.vim.treesitter.foldexpr()` (modern API) |
+| `plugins/dashboard.lua` | Snacks dashboard; chafa image preview is guarded by `filereadable` |
+| `plugins/colorscheme.lua` | Nord theme; no day/night logic |
+| `plugins/test.lua` | Neotest with neotest-golang |
+| `plugins/octo.lua` | GitHub PR/Issue management |
+| `plugins/plantuml.lua` | PlantUML preview with live-reload autocmd |
+
+### LSP / Tooling Coverage
+
+| Language | LSP | Formatter | Linter |
+|---|---|---|---|
+| Go | gopls | gofumpt, goimports | golangci-lint |
+| TypeScript/JS | vtsls | prettierd | eslint_d |
+| Lua | lua-language-server | stylua | — |
+| Bash/Shell | bash-language-server | shfmt | shellcheck |
+| YAML | yaml-language-server | prettierd | — |
+| Docker | dockerls | — | — |
+
+### Key Neovim Rules
+
+- **Do not add `none-ls`** — formatting/linting are handled by `conform.nvim` + `nvim-lint`. Adding `none-ls` causes double-format conflicts.
+- **Do not add `autowriteall`/`autowrite` to `options.lua`** — the smart auto-save autocmd in `autocmds.lua` already covers this safely.
+- Completion engine is **nvim-cmp** (loaded via `extras.lua`). Do not add blink.cmp.
+- Go keymaps use `<localleader>t*` (test), `<localleader>d*` (debug), `<localleader>l*` (lint). GoMod uses `<localleader>g*`. PlantUML uses `<localleader>u*`.
+- Dashboard image (`~/.config/nvim/home.jpg`) is optional — startup works without it.
+
+## Ghostty Linux Installation
+
+`scripts/ghostty-linux.sh` uses a tiered approach:
+1. **Debian**: tries `debian.griffo.io` apt repo → falls back to source build
+2. **Ubuntu 22.04/24.04/25.04/25.10**: tries `mkasberg/ghostty-ubuntu` → falls back to source build
+3. **Source build**: downloads Ghostty tarball, reads `minimum_zig_version` from `build.zig.zon`, fetches correct Zig, builds with `zig build -p ~/.local`
+
+When adding new Ubuntu LTS support, update the version check in `ghostty-linux.sh` and verify mkasberg supports it first.
+
 ## Key Conventions
 
 - Scripts use `set -euo pipefail` and detect `REPO_DIR` relative to `BASH_SOURCE[0]`.
 - Git commits are SSH-signed (`gpg.format = ssh`).
 - `autoSetupRemote = true` — no need to specify upstream on first push.
 - HTTPS GitHub URLs are rewritten to SSH via `url."git@github.com:".insteadOf`.
+- `tmux/` directory exists but is deprecated — not stowed and not listed in `bootstrap.sh`.
+- `bin/.bin/` personal scripts: `codews2zellij` (VS Code workspace → Zellij session), `lambdaenvvars` (AWS Lambda env → `.env` file), `codews2tmux` (deprecated).

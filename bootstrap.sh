@@ -72,7 +72,7 @@ fi
 eval "$("$BREW_BIN" shellenv)"
 
 echo "===> 🍻 Installing Brew Bundle"
-brew bundle --file="$REPO_DIR/Brewfile" || true
+brew bundle --file="$REPO_DIR/Brewfile" || echo "⚠️  Some Homebrew packages failed — check output above before continuing"
 
 echo "===> 📥 Stowing dotfiles (dry-run)"
 DOTFILES=("git" "zsh" "p10k" "nvim" "bin" "taskwarrior" "ghostty" "zellij")
