@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if command -v ghostty >/dev/null 2>&1; then
+	printf '\t---> ✅ Ghostty is already installed\n'
+	ghostty --version || true
+	exit 0
+fi
+
 echo "👻 Installing Ghostty (Debian/Ubuntu)..."
 
 # ---- detect distro ----

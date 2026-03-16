@@ -7,5 +7,6 @@ curl
 git
 gpg
 libnss3-tools
+libmagickwand-dev
 inkscape
 obs-studio
