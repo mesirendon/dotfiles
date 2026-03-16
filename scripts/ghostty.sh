@@ -4,6 +4,11 @@ set -euo pipefail
 CFG_DIR="$HOME/.config/ghostty"
 SHADERS_DIR="$CFG_DIR/shaders"
 
+if ! command -v ghostty >/dev/null 2>&1 && [[ ! -d "$CFG_DIR" ]]; then
+  echo "⏭  Ghostty not installed and $CFG_DIR not found — skipping shader setup"
+  exit 0
+fi
+
 mkdir -p "$SHADERS_DIR"
 
 # --- Fetch shaders ---

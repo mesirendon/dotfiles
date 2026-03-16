@@ -9,7 +9,7 @@ install_room() {
 	# NOTE: Update ROOM_VERSION periodically. Check: https://github.com/rvcas/room/releases
 	local version="v1.2.1"
 	echo "🔌 Installing Zellij plugin: room ${version} -> $dest"
-	curl -fsSL "https://github.com/rvcas/room/releases/download/${version}/room.wasm" -o "$dest"
+	curl -fsSL --connect-timeout 15 --max-time 120 "https://github.com/rvcas/room/releases/download/${version}/room.wasm" -o "$dest"
 }
 
 install_room
