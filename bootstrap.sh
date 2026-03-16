@@ -99,10 +99,12 @@ elif [[ "$PLATFORM" == "Debian" ]]; then
   "$REPO_DIR/scripts/ghostty-linux.sh"
 fi
 
+echo "===> 💿 Installing Oh My ZSH"
+timer "oh-my-zsh" "$REPO_DIR/scripts/oh-my-zsh.sh"
+
 echo "===> 🚀 Running post-install scripts in parallel"
 PARALLEL_SCRIPTS=(
   "ghostty:$REPO_DIR/scripts/ghostty.sh"
-  "oh-my-zsh:$REPO_DIR/scripts/oh-my-zsh.sh"
   "zellij:$REPO_DIR/scripts/zellij.sh"
   "claude-code:$REPO_DIR/scripts/claude-code.sh"
 )

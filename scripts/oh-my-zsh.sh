@@ -42,7 +42,7 @@ done
 if [[ "$SHELL" != *"zsh" ]]; then
   if command -v zsh >/dev/null; then
     echo "===> 💻 Setting zsh as default shell"
-    chsh -s "$(command -v zsh)" || echo "⚠️ chsh failed; run manually"
+    sudo chsh -s "$(command -v zsh)" "$USER" || echo "⚠️ chsh failed; run manually: sudo chsh -s $(command -v zsh) $USER"
   fi
 fi
 
