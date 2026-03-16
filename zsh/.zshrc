@@ -52,7 +52,7 @@ export NVM_DIR="$HOME/.nvm"
 source "$ZSH/oh-my-zsh.sh"
 
 # User config and PATH
-export PATH="$HOME/.bin:$PATH"
+export PATH="$HOME/.claude/bin:$HOME/.bin:$PATH"
 export EDITOR="nvim"
 
 # Go env: Preferring go's own values
@@ -89,9 +89,11 @@ alias tw='taskwarrior-tui'
 alias zj='zellij'
 alias zja='zj a $(zj ls -r| fzf --ansi --reverse | cut -d " "  -f 1)'
 copy() {
-	if command -v pbcopy >/dev/null 2>&1; then cat | pbcopy
+	if command -v pbcopy >/dev/null 2>&1; then pbcopy
+	elif [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v clip.exe >/dev/null 2>&1; then clip.exe
 	elif command -v wl-copy >/dev/null 2>&1; then wl-copy
 	elif command -v xclip >/dev/null 2>&1; then xclip -selection clipboard
+	elif command -v xsel >/dev/null 2>&1; then xsel --clipboard --input
 	else cat >/dev/null; echo "No clipboard tool found" >&2; return 1
 	fi
 }
@@ -103,6 +105,22 @@ ghostty-shader() {
   local shader="${1:-cursor_blaze.glsl}"
   ln -sf "$HOME/.config/ghostty/shaders/$shader" "$HOME/.config/ghostty/shaders/shader.glsl"
   echo "Shader set to $shader"
+}
+
+claude-install() {
+  if command -v claude >/dev/null 2>&1; then
+    echo "✅ Claude Code is already installed"
+    claude --version
+    return 0
+  fi
+  curl -fsSL --connect-timeout 15 --max-time 120 https://claude.ai/install.sh | bash
+  if command -v claude >/dev/null 2>&1; then
+    echo "✅ Claude Code installed successfully"
+    claude --version
+  else
+    echo "⚠️  Claude Code install script finished but 'claude' is not on PATH."
+    echo "    You may need to restart your shell or add ~/.claude/bin to PATH."
+  fi
 }
 
 sysupdate() {
