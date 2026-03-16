@@ -6,7 +6,6 @@ zsh
 curl
 git
 gpg
-fontconfig
 libnss3-tools
 inkscape
 obs-studio
