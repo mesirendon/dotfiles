@@ -26,7 +26,7 @@ return {
         "shellcheck",
         -- YAML / Docker
         "yaml-language-server",
-        "docker-langserver",
+        "dockerfile-language-server",
       })
     end,
   },
