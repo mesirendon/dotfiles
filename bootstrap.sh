@@ -94,48 +94,18 @@ fi
 
 if [[ "$PLATFORM" == "macos" ]]; then
   echo "==> 🍎 Brew bundle (mac)"
-  brew bundle --file="$REPO_DIR/Brewfile.mac" --verbose || true
+  timer "brew bundle (mac)" brew bundle --file="$REPO_DIR/Brewfile.mac" --verbose || echo "⚠️  Some macOS Homebrew packages failed — check output above before continuing"
 elif [[ "$PLATFORM" == "Debian" ]]; then
-  "$REPO_DIR/scripts/ghostty-linux.sh"
+  timer "ghostty-linux" "$REPO_DIR/scripts/ghostty-linux.sh" || echo "⚠️  Ghostty Linux install failed — check output above"
 fi
 
 echo "===> 💿 Installing Oh My ZSH"
 timer "oh-my-zsh" "$REPO_DIR/scripts/oh-my-zsh.sh"
 
-echo "===> 🚀 Running post-install scripts in parallel"
-PARALLEL_SCRIPTS=(
-  "ghostty:$REPO_DIR/scripts/ghostty.sh"
-  "zellij:$REPO_DIR/scripts/zellij.sh"
-  "claude-code:$REPO_DIR/scripts/claude-code.sh"
-)
-
-PARALLEL_TMPDIR="$(mktemp -d)"
-PARALLEL_PIDS=()
-PARALLEL_NAMES=()
-
-for entry in "${PARALLEL_SCRIPTS[@]}"; do
-  name="${entry%%:*}"
-  script="${entry#*:}"
-  PARALLEL_NAMES+=("$name")
-  "$script" > "$PARALLEL_TMPDIR/${name}.log" 2>&1 &
-  PARALLEL_PIDS+=($!)
-done
-
-PARALLEL_FAIL=0
-for i in "${!PARALLEL_PIDS[@]}"; do
-  if wait "${PARALLEL_PIDS[$i]}"; then
-    printf '  ✅ %s\n' "${PARALLEL_NAMES[$i]}"
-  else
-    printf '  ❌ %s (see %s/%s.log)\n' "${PARALLEL_NAMES[$i]}" "$PARALLEL_TMPDIR" "${PARALLEL_NAMES[$i]}"
-    PARALLEL_FAIL=1
-  fi
-done
-
-if [[ "$PARALLEL_FAIL" -eq 0 ]]; then
-  rm -rf "$PARALLEL_TMPDIR"
-else
-  echo "⚠️  Some scripts failed. Logs are in $PARALLEL_TMPDIR"
-fi
+echo "===> 🚀 Running post-install scripts"
+timer "ghostty" "$REPO_DIR/scripts/ghostty.sh" || echo "⚠️  Ghostty config failed — check output above"
+timer "zellij" "$REPO_DIR/scripts/zellij.sh" || echo "⚠️  Zellij setup failed — check output above"
+timer "claude-code" "$REPO_DIR/scripts/claude-code.sh" || echo "⚠️  Claude Code install failed — check output above"
 
 printf '\n===> 💻 Installation Finished in %ds\n' "$(( SECONDS - BOOTSTRAP_START ))"
 echo "===> 🔃 Restart your computer for the changes to take effect 🔃 <==="
