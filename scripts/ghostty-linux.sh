@@ -18,6 +18,40 @@ fi
 ARCH="$(uname -m)"
 echo "📦 Detected: ${DISTRO} (${CODENAME:-unknown}) ${VERSION_ID:-} [${ARCH}]"
 
+# ---- shared: verify OpenGL support ----
+check_opengl() {
+	if ! command -v glxinfo >/dev/null 2>&1; then
+		echo "⚠️  glxinfo not found — cannot verify OpenGL support."
+		echo "   Install mesa-utils and re-run, or set GSK_RENDERER=cairo if Ghostty fails to launch."
+		return
+	fi
+
+	if glxinfo -B 2>/dev/null | grep -qi "opengl renderer"; then
+		echo "✅ OpenGL support detected."
+	else
+		echo "⚠️  No working OpenGL detected (common on ARM64 VMs without GPU passthrough)."
+		echo "   Ghostty/GTK4 needs a renderer. Setting up cairo (software) fallback..."
+
+		local marker="# GSK_RENDERER fallback for Ghostty (no OpenGL)"
+		local zshrc="$HOME/.zshrc"
+		if [[ -f "$zshrc" ]] && grep -qF "$marker" "$zshrc"; then
+			echo "   GSK_RENDERER=cairo already configured in .zshrc"
+		else
+			{
+				echo ""
+				echo "$marker"
+				echo 'if [[ "$(uname -m)" == "aarch64" ]] && ! glxinfo -B 2>/dev/null | grep -qi "opengl renderer"; then'
+				echo '	export GSK_RENDERER=cairo'
+				echo 'fi'
+			} >> "$zshrc"
+			echo "   Added GSK_RENDERER=cairo fallback to $zshrc"
+		fi
+		echo ""
+		echo "   Note: cairo disables GPU acceleration and custom shaders."
+		echo "   If you later add GPU support, remove the GSK_RENDERER block from .zshrc."
+	fi
+}
+
 # ---- shared: build from source ----
 build_from_source() {
 	echo "🔨 Building Ghostty from source..."
@@ -35,7 +69,7 @@ build_from_source() {
 	trap 'rm -rf "$WORKDIR"' EXIT
 
 	echo "⬇️ Downloading Ghostty source tarball..."
-	curl -fsSL "https://github.com/ghostty-org/ghostty/releases/download/tip/ghostty-source.tar.gz" \
+	curl -fsSL --connect-timeout 15 --max-time 300 "https://github.com/ghostty-org/ghostty/releases/download/tip/ghostty-source.tar.gz" \
 		-o "${WORKDIR}/ghostty-source.tar.gz"
 
 	mkdir -p "${WORKDIR}/ghostty"
@@ -54,7 +88,7 @@ build_from_source() {
 	esac
 
 	echo "⬇️ Downloading Zig ${ZIG_VERSION} (${ARCH})..."
-	curl -fsSL "https://ziglang.org/download/${ZIG_VERSION}/${ZIG_TARBALL}" -o "${WORKDIR}/${ZIG_TARBALL}"
+	curl -fsSL --connect-timeout 15 --max-time 300 "https://ziglang.org/download/${ZIG_VERSION}/${ZIG_TARBALL}" -o "${WORKDIR}/${ZIG_TARBALL}"
 	mkdir -p "${WORKDIR}/zig"
 	tar -xf "${WORKDIR}/${ZIG_TARBALL}" -C "${WORKDIR}/zig" --strip-components=1
 	ZIG="${WORKDIR}/zig/zig"
@@ -66,17 +100,18 @@ build_from_source() {
 
 	echo "✅ Ghostty installed from source."
 	echo "ℹ️  Ensure ${PREFIX}/bin is on your PATH."
+	check_opengl
 }
 
-sudo apt update -y
-sudo apt install -y curl gpg apt-transport-https ca-certificates tar xz-utils
+sudo apt install -y curl gpg apt-transport-https ca-certificates tar xz-utils \
+	libgl1-mesa-dri libegl-mesa0 libegl1 mesa-utils
 
 # ---- Debian ----
 if [[ "$DISTRO" == "debian" ]]; then
 	echo "➡️ Setting up debian.griffo.io repository..."
 
 	if [[ ! -f /etc/apt/trusted.gpg.d/debian.griffo.io.gpg ]]; then
-		sudo sh -c 'curl -fsSL https://debian.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc \
+		sudo sh -c 'curl -fsSL --connect-timeout 15 --max-time 120 https://debian.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc \
       | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/debian.griffo.io.gpg'
 	fi
 
@@ -87,6 +122,7 @@ if [[ "$DISTRO" == "debian" ]]; then
 
 	if sudo apt install -y ghostty 2>/dev/null; then
 		echo "✅ Ghostty installed from debian.griffo.io."
+		check_opengl
 		exit 0
 	fi
 
@@ -102,8 +138,9 @@ if [[ "$DISTRO" == "ubuntu" ]]; then
 		"${VERSION_ID:-}" == "25.04" || "${CODENAME:-}" == "plucky" || \
 		"${VERSION_ID:-}" == "25.10" || "${CODENAME:-}" == "questing" ]]; then
 		echo "➡️ Trying mkasberg/ghostty-ubuntu installer..."
-		if /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/install.sh)"; then
+		if /bin/bash -c "$(curl -fsSL --connect-timeout 15 --max-time 120 https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/install.sh)"; then
 			echo "✅ Ghostty installed via mkasberg/ghostty-ubuntu."
+			check_opengl
 			exit 0
 		fi
 		echo "⚠️  mkasberg installer failed; falling back to source build..."

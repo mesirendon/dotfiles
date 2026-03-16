@@ -9,7 +9,7 @@ if command -v claude >/dev/null 2>&1; then
 	exit 0
 fi
 
-curl -fsSL https://claude.ai/install.sh | bash
+curl -fsSL --connect-timeout 15 --max-time 120 https://claude.ai/install.sh | bash
 
 if command -v claude >/dev/null 2>&1; then
 	printf '\t---> ✅ Claude Code installed successfully\n'

@@ -8,7 +8,7 @@ ZSH_CUSTOM="${ZSH_CUSTOM:-$ZSH_DIR/custom}"
 if [[ ! -d "$ZSH_DIR" ]]; then
   echo "===> 💿 Installing Oh My ZSH"
   export RUNZSH=no CHSH=no KEEP_ZSHRC=yes
-  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  sh -c "$(curl -fsSL --connect-timeout 15 --max-time 120 https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 else
   printf '\t---> ✅ Oh My ZSH is already installed\n'
 fi
@@ -32,7 +32,7 @@ for repo in "${plugins[@]}"; do
   target="$ZSH_CUSTOM/plugins/$name"
   if [[ ! -d "$target" ]]; then
     echo "===> 💿 Installing $name..."
-    git clone https://github.com/$repo "$target"
+    git clone --depth 1 https://github.com/$repo "$target"
   else
     printf '\t---> ✅ %s is already installed\n' "$name"
   fi

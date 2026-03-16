@@ -2,6 +2,16 @@
 set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export HOMEBREW_NO_AUTO_UPDATE=1
+BOOTSTRAP_START=$SECONDS
+
+timer() {
+  local label="$1"; shift
+  local start=$SECONDS
+  local rc=0
+  "$@" || rc=$?
+  printf '  ⏱  %s: %ds\n' "$label" "$(( SECONDS - start ))"
+  return $rc
+}
 
 sudo -v || {
   echo "Need sudo to proceed"
@@ -32,7 +42,7 @@ echo "===> Platform detected: $PLATFORM ($ARCH)"
 
 if [[ "$PLATFORM" == "Debian" ]]; then
   echo "===> 🐧 Installing Debian/Ubuntu Prerequisites"
-  "$REPO_DIR/scripts/apt.sh"
+  timer "apt packages" "$REPO_DIR/scripts/apt.sh"
 fi
 
 if [[ "$PLATFORM" == "macos" ]]; then
@@ -47,7 +57,7 @@ fi
 
 if [[ ! -d "$BREW_PREFIX" ]]; then
   echo "===> 🍺 Installing Homebrew"
-  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL --connect-timeout 15 --max-time 120 https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 else
   printf '\t---> ✅ Homebrew is already installed\n'
 fi
@@ -72,7 +82,7 @@ fi
 eval "$("$BREW_BIN" shellenv)"
 
 echo "===> 🍻 Installing Brew Bundle"
-brew bundle --file="$REPO_DIR/Brewfile" || echo "⚠️  Some Homebrew packages failed — check output above before continuing"
+timer "brew bundle" brew bundle --file="$REPO_DIR/Brewfile" --verbose || echo "⚠️  Some Homebrew packages failed — check output above before continuing"
 
 echo "===> 📥 Stowing dotfiles (dry-run)"
 DOTFILES=("git" "zsh" "p10k" "nvim" "bin" "taskwarrior" "ghostty" "zellij")
@@ -89,15 +99,42 @@ elif [[ "$PLATFORM" == "Debian" ]]; then
   "$REPO_DIR/scripts/ghostty-linux.sh"
 fi
 
-"$REPO_DIR/scripts/ghostty.sh"
-"$REPO_DIR/scripts/oh-my-zsh.sh"
-"$REPO_DIR/scripts/fonts.sh"
+echo "===> 🚀 Running post-install scripts in parallel"
+PARALLEL_SCRIPTS=(
+  "ghostty:$REPO_DIR/scripts/ghostty.sh"
+  "oh-my-zsh:$REPO_DIR/scripts/oh-my-zsh.sh"
+  "fonts:$REPO_DIR/scripts/fonts.sh"
+  "zellij:$REPO_DIR/scripts/zellij.sh"
+  "claude-code:$REPO_DIR/scripts/claude-code.sh"
+)
 
-echo "===> 🔌 Installing zellij plugins"
-"$REPO_DIR/scripts/zellij.sh"
+PARALLEL_TMPDIR="$(mktemp -d)"
+PARALLEL_PIDS=()
+PARALLEL_NAMES=()
 
-echo "===> 🤖 Installing Claude Code"
-"$REPO_DIR/scripts/claude-code.sh"
+for entry in "${PARALLEL_SCRIPTS[@]}"; do
+  name="${entry%%:*}"
+  script="${entry#*:}"
+  PARALLEL_NAMES+=("$name")
+  "$script" > "$PARALLEL_TMPDIR/${name}.log" 2>&1 &
+  PARALLEL_PIDS+=($!)
+done
 
-echo "===> 💻 Installation Finished"
+PARALLEL_FAIL=0
+for i in "${!PARALLEL_PIDS[@]}"; do
+  if wait "${PARALLEL_PIDS[$i]}"; then
+    printf '  ✅ %s\n' "${PARALLEL_NAMES[$i]}"
+  else
+    printf '  ❌ %s (see %s/%s.log)\n' "${PARALLEL_NAMES[$i]}" "$PARALLEL_TMPDIR" "${PARALLEL_NAMES[$i]}"
+    PARALLEL_FAIL=1
+  fi
+done
+
+if [[ "$PARALLEL_FAIL" -eq 0 ]]; then
+  rm -rf "$PARALLEL_TMPDIR"
+else
+  echo "⚠️  Some scripts failed. Logs are in $PARALLEL_TMPDIR"
+fi
+
+printf '\n===> 💻 Installation Finished in %ds\n' "$(( SECONDS - BOOTSTRAP_START ))"
 echo "===> 🔃 Restart your computer for the changes to take effect 🔃 <==="
