@@ -52,7 +52,7 @@ export NVM_DIR="$HOME/.nvm"
 source "$ZSH/oh-my-zsh.sh"
 
 # User config and PATH
-export PATH="$HOME/.bin:$PATH"
+export PATH="$HOME/.claude/bin:$HOME/.bin:$PATH"
 export EDITOR="nvim"
 
 # Go env: Preferring go's own values
@@ -89,9 +89,10 @@ alias tw='taskwarrior-tui'
 alias zj='zellij'
 alias zja='zj a $(zj ls -r| fzf --ansi --reverse | cut -d " "  -f 1)'
 copy() {
-	if command -v pbcopy >/dev/null 2>&1; then cat | pbcopy
+	if command -v pbcopy >/dev/null 2>&1; then pbcopy
 	elif command -v wl-copy >/dev/null 2>&1; then wl-copy
 	elif command -v xclip >/dev/null 2>&1; then xclip -selection clipboard
+	elif command -v xsel >/dev/null 2>&1; then xsel --clipboard --input
 	else cat >/dev/null; echo "No clipboard tool found" >&2; return 1
 	fi
 }
