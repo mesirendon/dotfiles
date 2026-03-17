@@ -25,9 +25,10 @@ The script auto-detects OS/architecture and runs the appropriate steps. It requi
 | `scripts/ghostty-linux.sh` | Install Ghostty terminal on Linux |
 | `scripts/ghostty.sh` | Configure Ghostty settings |
 | `scripts/oh-my-zsh.sh` | Install Oh My Zsh |
-| `scripts/fonts.sh` | Install fonts |
+| `scripts/kitty.sh` | Install Kitty terminal on Linux |
 | `scripts/zellij.sh` | Install Zellij plugins (room.wasm) |
 | `scripts/claude-code.sh` | Install Claude Code CLI |
+| `scripts/tmux.sh` | Install TPM and tmux plugins (not called by bootstrap) |
 
 ## Stow Packages
 
@@ -94,7 +95,7 @@ LazyVim is the base distribution (`branch = "stable"`). Custom config lives unde
 | File/Dir | Purpose |
 |---|---|
 | `config/lazy.lua` | Lazy.nvim bootstrap; LazyVim pinned to `stable` branch |
-| `config/extras.lua` | LazyVim extras (nvim-cmp, mini-surround, aerial, markdown, rest, claudecode) |
+| `config/extras.lua` | LazyVim extras (nvim-cmp, mini-surround, mini-comment, gitui, aerial, rest, claudecode) |
 | `config/keymaps.lua` | All custom keymaps; Go/GoMod/PlantUML groups registered with which-key |
 | `config/options.lua` | Editor options (`fixendofline`); **do not re-add `autowriteall`** — auto-save is handled by `autocmds.lua` |
 | `config/autocmds.lua` | Smart auto-save on `BufLeave`/`WinLeave`/`FocusLost` (skips non-file buffers) |
@@ -105,6 +106,12 @@ LazyVim is the base distribution (`branch = "stable"`). Custom config lives unde
 | `plugins/test.lua` | Neotest with neotest-golang |
 | `plugins/octo.lua` | GitHub PR/Issue management |
 | `plugins/plantuml.lua` | PlantUML preview with live-reload autocmd |
+| `plugins/abolish.lua` | vim-abolish case coercion (`cr*` keymaps) |
+| `plugins/claudecode.lua` | Claude Code Neovim integration |
+| `plugins/colorizer.lua` | Color highlighting (CSS, HTML, JS, Lua) |
+| `plugins/image.lua` | Image rendering via Kitty protocol |
+| `plugins/luasnip.lua` | Snippet engine; Go template snippets in `snippets/gotmpl.lua` |
+| `plugins/ui-select.lua` | Dressing.nvim for improved `vim.ui.select`/`vim.ui.input` |
 
 ### LSP / Tooling Coverage
 
@@ -123,8 +130,10 @@ LazyVim is the base distribution (`branch = "stable"`). Custom config lives unde
 - **Do not add `autowriteall`/`autowrite` to `options.lua`** — the smart auto-save autocmd in `autocmds.lua` already covers this safely.
 - Completion engine is **nvim-cmp** (loaded via `extras.lua`). Do not add blink.cmp.
 - Go keymaps use `<localleader>t*` (test), `<localleader>d*` (debug), `<localleader>l*` (lint). GoMod uses `<localleader>g*`. PlantUML uses `<localleader>u*`.
+- Octo (GitHub) keymaps use `<leader>o*` — `<leader>op*` for PRs, `<leader>oi*` for Issues.
+- Abolish case coercion: `cr*` keymaps (crs=snake, crc=camel, crm=PascalCase, cru=UPPER, cr-=kebab).
 - Dashboard image (`~/.config/nvim/home.jpg`) is optional — startup works without it.
-- **Go test `-race` is conditional on CGO** — `test.lua` checks `go env CGO_ENABLED` before adding `-race`. On Linux arm64 with Homebrew Go, CGO is often disabled because Go can't find the system gcc. Do not hardcode `-race` unconditionally.
+- **Go test `-race` is probe-gated** — `test.lua` runs `go build -race -o /dev/null std` at startup to verify the race detector actually works before adding `-race`. This catches all failure modes (missing gcc, ABI/linker incompatibility, unsupported platform). Do not hardcode `-race` unconditionally or regress to a simple `go env CGO_ENABLED` check.
 
 ## Ghostty Linux Installation
 
