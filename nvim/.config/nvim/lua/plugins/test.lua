@@ -16,12 +16,19 @@ return {
       },
     },
     config = function()
+      local go_test_args = {
+        "-v",
+        "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
+      }
+
+      -- -race requires CGO (a working C compiler); skip when unavailable
+      local cgo_check = vim.fn.system("go env CGO_ENABLED")
+      if vim.trim(cgo_check) == "1" then
+        table.insert(go_test_args, 2, "-race")
+      end
+
       local neotest_golang_opts = {
-        go_test_args = {
-          "-v",
-          "-race",
-          "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
-        },
+        go_test_args = go_test_args,
       }
       local neotest = require("neotest")
       neotest.setup({
