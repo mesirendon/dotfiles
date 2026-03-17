@@ -21,9 +21,10 @@ return {
         "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
       }
 
-      -- -race requires CGO (a working C compiler); skip when unavailable
-      local cgo_check = vim.fn.system("go env CGO_ENABLED")
-      if vim.trim(cgo_check) == "1" then
+      -- -race requires CGO + a working C toolchain; probe with a real build
+      -- to catch ABI/linker issues (common on Linux arm64 with Homebrew Go)
+      vim.fn.system("go build -race -o /dev/null std 2>&1")
+      if vim.v.shell_error == 0 then
         table.insert(go_test_args, 2, "-race")
       end
 
