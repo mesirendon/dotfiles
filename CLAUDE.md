@@ -124,6 +124,7 @@ LazyVim is the base distribution (`branch = "stable"`). Custom config lives unde
 - Completion engine is **nvim-cmp** (loaded via `extras.lua`). Do not add blink.cmp.
 - Go keymaps use `<localleader>t*` (test), `<localleader>d*` (debug), `<localleader>l*` (lint). GoMod uses `<localleader>g*`. PlantUML uses `<localleader>u*`.
 - Dashboard image (`~/.config/nvim/home.jpg`) is optional — startup works without it.
+- **Go test `-race` is conditional on CGO** — `test.lua` checks `go env CGO_ENABLED` before adding `-race`. On Linux arm64 with Homebrew Go, CGO is often disabled because Go can't find the system gcc. Do not hardcode `-race` unconditionally.
 
 ## Ghostty Linux Installation
 
