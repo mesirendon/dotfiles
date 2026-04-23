@@ -28,6 +28,40 @@ vim.api.nvim_create_autocmd("FileType", {
       vim.cmd("split | terminal go mod tidy")
       vim.cmd("startinsert")
     end, { desc = "🧹 Go Mod: Tidy", buffer = buf })
+
+    map("n", "<localleader>gu", function()
+      vim.notify("🔎 Fetching latest Go version...", vim.log.levels.INFO, { title = "Go Mod" })
+      vim.system(
+        { "curl", "-fsSL", "https://go.dev/dl/?mode=json" },
+        { text = true },
+        vim.schedule_wrap(function(obj)
+          if obj.code ~= 0 then
+            vim.notify("❌ Failed to fetch Go versions", vim.log.levels.ERROR, { title = "Go Mod" })
+            return
+          end
+          local ok, releases = pcall(vim.json.decode, obj.stdout)
+          if not ok or type(releases) ~= "table" then
+            vim.notify("❌ Could not parse go.dev/dl response", vim.log.levels.ERROR, { title = "Go Mod" })
+            return
+          end
+          local latest
+          for _, rel in ipairs(releases) do
+            if rel.stable then
+              latest = rel.version
+              break
+            end
+          end
+          if not latest then
+            vim.notify("❌ No stable Go version found", vim.log.levels.ERROR, { title = "Go Mod" })
+            return
+          end
+          local semver = latest:gsub("^go", "")
+          local cmd = string.format("go mod edit -go=%s -toolchain=%s && go mod tidy", semver, latest)
+          vim.cmd("split | terminal " .. cmd)
+          vim.cmd("startinsert")
+        end)
+      )
+    end, { desc = "🚀 Go Mod: Update Go Version & Toolchain to Latest", buffer = buf })
   end,
 })
 
