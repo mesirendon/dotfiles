@@ -78,8 +78,19 @@ vim.api.nvim_create_autocmd("FileType", {
         { "<localleader>t", group = "Tests", buffer = buf },
         { "<localleader>d", group = "Debug", buffer = buf },
         { "<localleader>l", group = "Linter", buffer = buf },
+        { "<localleader>g", group = "Go", buffer = buf },
       })
     end
+
+    -- ==== Go (go.nvim) <localleader>g ==== --
+    map("n", "<localleader>gf", "<cmd>GoFillStruct<cr>", { desc = "Fill Struct Fields", buffer = buf })
+    map("n", "<localleader>ge", "<cmd>GoIfErr<cr>", { desc = "Add if err != nil", buffer = buf })
+    map("n", "<localleader>gi", "<cmd>GoImpl<cr>", { desc = "Implement Interface", buffer = buf })
+    map("n", "<localleader>ga", "<cmd>GoAddTag<cr>", { desc = "Add Struct Tags", buffer = buf })
+    map("n", "<localleader>gA", "<cmd>GoRmTag<cr>", { desc = "Remove Struct Tags", buffer = buf })
+    map("n", "<localleader>gT", "<cmd>GoModifyTag<cr>", { desc = "Modify Struct Tags", buffer = buf })
+    map("n", "<localleader>go", "<cmd>GoAlt!<cr>", { desc = "Toggle Source/Test File", buffer = buf })
+    map("n", "<localleader>gc", "<cmd>GoCmt<cr>", { desc = "Generate Function Comment", buffer = buf })
 
     local function term_run(argv, name)
       vim.cmd("botright split | resize 15")
