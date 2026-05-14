@@ -1,0 +1,62 @@
+#!/bin/bash
+set -euo pipefail
+
+usage() {
+  echo "Usage: AWS_PROFILE=<aws-profile> AWS_REGION=<aws-region> $(basename "$0")" >&2
+  echo "Example: AWS_PROFILE=my-sso-profile AWS_REGION=us-east-1 $(basename "$0")" >&2
+  echo >&2
+  echo "Run after 'aws sso login --profile \$AWS_PROFILE'." >&2
+  exit 1
+}
+
+if [[ -z "${AWS_PROFILE:-}" || -z "${AWS_REGION:-}" ]]; then
+  echo "ERROR: AWS_PROFILE and AWS_REGION must be set." >&2
+  usage
+fi
+
+DAYS=30
+END_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+START_DATE=$(date -u -v-${DAYS}d +"%Y-%m-%dT%H:%M:%SZ")
+
+echo "Checking Lambda functions not invoked in the last $DAYS days..."
+echo "Profile: $AWS_PROFILE"
+echo "Region:  $AWS_REGION"
+echo "Period:  $START_DATE to $END_DATE"
+echo "-------------------------------------------"
+
+if ! aws sts get-caller-identity --profile "$AWS_PROFILE" --region "$AWS_REGION" >/dev/null 2>&1; then
+  echo "ERROR: credentials for profile '$AWS_PROFILE' are missing or expired." >&2
+  echo "Run: aws sso login --profile $AWS_PROFILE" >&2
+  exit 2
+fi
+
+FUNCTIONS=$(aws lambda list-functions \
+  --profile "$AWS_PROFILE" \
+  --region "$AWS_REGION" \
+  --query 'Functions[*].FunctionName' \
+  --output text)
+
+NOT_INVOKED=()
+
+for FUNC in $FUNCTIONS; do
+  INVOCATIONS=$(aws cloudwatch get-metric-statistics \
+    --profile "$AWS_PROFILE" \
+    --region "$AWS_REGION" \
+    --namespace AWS/Lambda \
+    --metric-name Invocations \
+    --dimensions Name=FunctionName,Value="$FUNC" \
+    --start-time "$START_DATE" \
+    --end-time "$END_DATE" \
+    --period $((DAYS * 86400)) \
+    --statistics Sum \
+    --query 'Datapoints[0].Sum' \
+    --output text)
+
+  if [[ "$INVOCATIONS" == "None" || "$INVOCATIONS" == "null" || -z "$INVOCATIONS" ]]; then
+    NOT_INVOKED+=("$FUNC")
+    echo "NOT INVOKED: $FUNC"
+  fi
+done
+
+echo "-------------------------------------------"
+echo "Total functions not invoked in last $DAYS days: ${#NOT_INVOKED[@]}"
