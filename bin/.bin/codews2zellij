@@ -59,6 +59,8 @@ for fjson in "${FOLDERS[@]}"; do
 	echo "Opening tab '$WIN_NAME' in $ABS_DIR"
 	zellij action new-tab --name "$WIN_NAME" --cwd "$ABS_DIR"
 	sleep 0.05
-	CMD="clear && ${FOLDER_CMD:-${RUN_CMD:-nvim .}}"
-	zellij action write-chars "$CMD"$'\n'
+	CMD="${FOLDER_CMD:-$RUN_CMD}"
+	if [[ -n "$CMD" ]]; then
+		zellij action write-chars "$CMD"$'\n'
+	fi
 done
