@@ -123,8 +123,32 @@ claude-install() {
   fi
 }
 
+_brew_trust_taps() {
+  local tap
+  while IFS= read -r tap; do
+    [[ "$tap" == homebrew/* ]] && continue
+    print "Trusting tap: $tap"
+    HOMEBREW_NO_AUTO_UPDATE=1 yes | brew tap "$tap" 2>/dev/null || true
+  done < <(brew tap)
+}
+
+brew_check_tap() {
+  local tap="${1:?Usage: brew_check_tap <user/repo>}"
+  print "==> Tap metadata (brew tap-info)"
+  brew tap-info "$tap" 2>/dev/null || print "Tap not installed locally"
+  print ""
+  local org="${tap%%/*}"
+  local name="${tap##*/}"
+  local repo="${org}/homebrew-${name}"
+  print "==> GitHub info (gh repo view)"
+  gh repo view "$repo" --json name,description,stargazerCount,updatedAt,openIssueCount \
+    --template '{{.name}}: {{.description}}\nStars: {{.stargazerCount}} | Open issues: {{.openIssueCount}} | Last updated: {{.updatedAt}}\n' \
+    2>/dev/null || print "Could not fetch GitHub info (gh not authenticated or repo not found)"
+}
+
 sysupdate() {
-export HOMEBREW_NO_AUTO_UPDATE=1
+  export HOMEBREW_NO_AUTO_UPDATE=1
+  _brew_trust_taps
   if [[ $OS_FAMILY == linux ]]; then
       sudo apt update && sudo apt -y upgrade && sudo apt -y dist-upgrade \
       && sudo apt -y autoremove && sudo apt -y autoclean \
