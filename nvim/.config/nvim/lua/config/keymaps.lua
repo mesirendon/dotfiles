@@ -238,7 +238,7 @@ vim.api.nvim_create_autocmd("FileType", {
 
     local function run_go_linter_with_feedback()
       vim.cmd("silent! update")
-      lint.try_lint("golangcilint")
+      lint.try_lint("golangci_lint")
 
       vim.defer_fn(function()
         if not vim.api.nvim_buf_is_valid(buf) then
