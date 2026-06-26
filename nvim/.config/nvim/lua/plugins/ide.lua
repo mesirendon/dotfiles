@@ -12,6 +12,7 @@ return {
         "gofumpt",
         "goimports",
         "golangci-lint",
+        "gotestsum",
         "delve",
         -- TS/JS
         "vtsls",
