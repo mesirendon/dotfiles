@@ -52,13 +52,17 @@ return {
           settings = {
             gopls = {
               gofumpt = true,
-              analyses = { unusedparams = true, shadow = true, unusedwrite = true, useany = true },
-              staticcheck = true,
+              analyses = {
+                fieldalignment = true,
+              },
               hints = {
-                parameterNames = true,
                 assignVariableTypes = true,
+                compositeLiteralFields = true,
                 constantValues = true,
                 functionTypeParameters = true,
+                ignoredError = true,
+                parameterNames = true,
+                rangeVariableTypes = true,
               },
             },
           },
