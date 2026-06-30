@@ -7,11 +7,12 @@ return {
           return LazyVim.pick(cmd, opts)()
         end,
         header = [[
-                     _                    _             
- _ __ ___   ___  ___(_)_ __ ___ _ __   __| | ___  _ __  
-| '_ ` _ \ / _ \/ __| | '__/ _ \ '_ \ / _` |/ _ \| '_ \ 
-| | | | | |  __/\__ \ | | |  __/ | | | (_| | (_) | | | |
-|_| |_| |_|\___||___/_|_|  \___|_| |_|\__,_|\___/|_| |_|
+                _                     _ _   _     
+               | |                   (_) | | |    
+   ___ ___   __| | ___  ___ _ __ ___  _| |_| |__  
+  / __/ _ \ / _` |/ _ \/ __| '_ ` _ \| | __| '_ \ 
+ | (_| (_) | (_| |  __/\__ \ | | | | | | |_| | | |
+  \___\___/ \__,_|\___||___/_| |_| |_|_|\__|_| |_|
 ]],
         footer = { "Write. Build. Learn." },
         -- stylua: ignore
@@ -28,23 +29,18 @@ return {
         --   { icon = " ", key = "q", desc = "Quit", action = ":qa" },
         -- },
       },
-      sections = vim.list_extend(
-        vim.fn.filereadable(vim.fn.expand("~/.config/nvim/home.jpg")) == 1
-            and {
-              {
-                section = "terminal",
-                cmd = "chafa ~/.config/nvim/home.jpg --symbols block --size 56",
-                height = 15,
-                padding = 1,
-              },
-            }
-          or {},
+      sections = vim.list_extend(vim.fn.filereadable(vim.fn.expand("~/.config/nvim/logo.png")) == 1 and {
         {
-          { section = "header" },
-          { section = "keys", gap = 1, padding = 1 },
-          { section = "startup" },
-        }
-      ),
+          section = "terminal",
+          cmd = "chafa ~/.config/nvim/logo.png --symbols block --size 56",
+          height = 28,
+          padding = 1,
+        },
+      } or {}, {
+        { section = "header" },
+        { section = "keys", gap = 1, padding = 1 },
+        { section = "startup" },
+      }),
     },
   },
 }
