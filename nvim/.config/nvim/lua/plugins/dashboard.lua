@@ -32,8 +32,8 @@ return {
       sections = vim.list_extend(vim.fn.filereadable(vim.fn.expand("~/.config/nvim/logo.png")) == 1 and {
         {
           section = "terminal",
-          cmd = "chafa ~/.config/nvim/logo.png --symbols block --size 56",
-          height = 28,
+          cmd = "chafa ~/.config/nvim/logo.png --size 56",
+          height = 30,
           padding = 1,
         },
       } or {}, {
