@@ -33,7 +33,7 @@ return {
         {
           section = "terminal",
           cmd = "chafa ~/.config/nvim/logo.png --size 56",
-          height = 30,
+          height = 17,
           padding = 1,
         },
       } or {}, {
