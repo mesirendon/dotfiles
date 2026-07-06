@@ -123,7 +123,7 @@ claude-install() {
   fi
 }
 
-_brew_trust_taps() {
+brew_trust_taps() {
   local tap
   while IFS= read -r tap; do
     [[ "$tap" == homebrew/* ]] && continue
@@ -148,7 +148,6 @@ brew_check_tap() {
 
 sysupdate() {
   export HOMEBREW_NO_AUTO_UPDATE=1
-  _brew_trust_taps
   if [[ $OS_FAMILY == linux ]]; then
       sudo apt update && sudo apt -y upgrade && sudo apt -y dist-upgrade \
       && sudo apt -y autoremove && sudo apt -y autoclean \
