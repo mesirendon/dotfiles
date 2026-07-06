@@ -21,6 +21,10 @@
       - [Color Highlighting (`nvim-colorizer`)](#color-highlighting-nvim-colorizer)
       - [Image Rendering (`image.nvim`)](#image-rendering-imagenvim)
       - [Snippets (`LuaSnip`)](#snippets-luasnip)
+      - [Colorscheme (`catppuccin`)](#colorscheme-catppuccin)
+      - [Dashboard (`snacks.nvim`)](#dashboard-snacksnvim)
+      - [UI Select/Input (`dressing.nvim`)](#ui-selectinput-dressingnvim)
+      - [LazyVim Extras Enabled](#lazyvim-extras-enabled)
       - [Claude Code (`claudecode.nvim`)](#claude-code-claudecodenvim)
       - [Treesitter Text-Object Navigation](#treesitter-text-object-navigation)
       - [Auto-save](#auto-save)
@@ -141,11 +145,14 @@ Inside `go.mod` files, `<localleader>g*` drives module commands.
 | `<localleader>dr` | Restart session |
 | `<localleader>dS` | Stop session |
 | `<localleader>du` | Toggle DAP UI (scopes / stacks / breakpoints / REPL) |
+| `<localleader>ds` | Open scopes/stacks/breakpoints view |
 | `<localleader>dv` | Inspect variable under cursor |
 
 Two launch configs are available when starting (`<localleader>dc`): **Debug Main** (workspace `main`) and **Debug Current File**. `AWS_PROFILE` and `AWS_REGION` are forwarded automatically.
 
 #### Go Linting (`nvim-lint` + `golangci-lint`)
+
+Linting is intentionally **not** configured globally — `golangci-lint` runs against whatever `.golangci.yml`/`.golangci.toml` (or lack thereof) exists in the current project. This dotfiles repo only installs the binary and wires up the keymaps; rule selection is left entirely to each project.
 
 | Keymap | Description |
 | --- | --- |
@@ -160,7 +167,7 @@ Managed by Mason + nvim-lspconfig. Active servers:
 
 | Language | Server | Extras |
 | --- | --- | --- |
-| Go | `gopls` | inlay hints for types, params, constants; `fieldalignment` analysis |
+| Go | `gopls` | standard config (`gofumpt` formatting, `fieldalignment` analysis, full inlay-hint set: assign types, composite literal fields, constant values, function type params, ignored errors, parameter names, range var types) — no extra analyzers or `staticcheck` overrides |
 | TypeScript/JS | `vtsls` | — |
 | Lua | `lua-language-server` | vim global pre-loaded |
 | Bash/Shell | `bash-language-server` | — |
@@ -183,6 +190,7 @@ PR and issue management without leaving Neovim. Uses `fzf-lua` as the picker.
 | `<leader>opc` | Checkout PR |
 | `<leader>opk` | PR checks / CI status |
 | `<leader>opm` | Merge PR (squash by default) |
+| `<leader>opl` | Reload PR |
 | `<leader>opr` | Start review |
 | `<leader>ops` | Submit review |
 | `<leader>opb` | Open PR in browser |
@@ -192,7 +200,7 @@ PR and issue management without leaving Neovim. Uses `fzf-lua` as the picker.
 | `<leader>oic` | Create issue |
 | `<leader>oiv` | View issue |
 
-Inside an Octo buffer, `<localleader>p*` drives PR actions (merge, checkout, commits, files, diff) and `<localleader>i*` drives issue actions (close, reopen, labels, assignees). `<localleader>ca/cr/cd` add, reply, or delete comments; `[c/]c` jump between comments.
+Inside an Octo buffer, `<localleader>p*` drives PR actions (checkout, merge variants, commits, files, diff), `<localleader>i*` drives issue actions (close, reopen, list), `<localleader>l*` manages labels (add, remove, create), and `<localleader>a*` manages assignees (add, remove). `<localleader>ca/cr/cd` add, reply, or delete comments; `[c/]c` jump between comments.
 
 #### PlantUML (`plantuml-previewer.vim`)
 
@@ -243,6 +251,22 @@ Renders images inline using the Kitty terminal protocol. Supported formats: `png
 #### Snippets (`LuaSnip`)
 
 Custom snippets live in `nvim/.config/nvim/lua/snippets/`. Go template snippets are in `snippets/gotmpl.lua`. Snippets are triggered through the nvim-cmp completion menu.
+
+#### Colorscheme (`catppuccin`)
+
+`catppuccin-mocha` flavour, set as the LazyVim default colorscheme.
+
+#### Dashboard (`snacks.nvim`)
+
+Custom start screen: custom ASCII header, footer ("Write. Build. Learn."), and an optional `chafa`-rendered logo section (shown only if `~/.config/nvim/logo.png` exists).
+
+#### UI Select/Input (`dressing.nvim`)
+
+Improves the look of `vim.ui.select`/`vim.ui.input` prompts (used by things like `GoImpl`'s interface-name prompt and LSP code actions).
+
+#### LazyVim Extras Enabled
+
+Beyond the language servers above, `config/extras.lua` turns on: `coding.mini-surround`, `coding.mini-comment`, `coding.nvim-cmp` (completion engine), `editor.aerial`, `util.gitui`, `util.rest`, and `ai.claudecode`.
 
 #### Claude Code (`claudecode.nvim`)
 
@@ -316,7 +340,7 @@ Dates are entered and displayed as `m/d/Y` (e.g. `6/30/2026`). Annotations inclu
 
 #### TUI (`taskwarrior-tui`)
 
-Launch with `tt`. Vim-style keybindings:
+Launch with `tw`. Vim-style keybindings:
 
 | Key | Action |
 | --- | --- |
