@@ -8,6 +8,20 @@ local opts = { silent = true, noremap = true }
 map("n", "+", "<C-a>", opts)
 map("n", "-", "<C-x>", opts)
 
+-- Symbol navigation (function/class), via aerial.nvim (LSP + treesitter backends)
+-- Aerial has no per-kind filter for next()/prev(), so both old ]f/[f (function)
+-- and ]c/[c (class) motions map to the same generic symbol jump.
+local function aerial_next()
+  require("aerial").next()
+end
+local function aerial_prev()
+  require("aerial").prev()
+end
+map("n", "]f", aerial_next, { desc = "Next Symbol (function/class)" })
+map("n", "[f", aerial_prev, { desc = "Prev Symbol (function/class)" })
+map("n", "]c", aerial_next, { desc = "Next Symbol (function/class)" })
+map("n", "[c", aerial_prev, { desc = "Prev Symbol (function/class)" })
+
 -- Go
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "gomod",
