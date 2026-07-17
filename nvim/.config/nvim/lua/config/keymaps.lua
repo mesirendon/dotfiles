@@ -22,6 +22,13 @@ map("n", "[f", aerial_prev, { desc = "Prev Symbol (function/class)" })
 map("n", "]c", aerial_next, { desc = "Next Symbol (function/class)" })
 map("n", "[c", aerial_prev, { desc = "Prev Symbol (function/class)" })
 
+-- Incremental selection via treesitter (arborist.nvim has no built-in
+-- equivalent to nvim-treesitter's incremental_selection, so this is
+-- reimplemented on top of core vim.treesitter).
+local ts_select = require("config.treesitter-select")
+map({ "n", "x" }, "<M-space>", ts_select.grow, { desc = "Init/Expand Selection" })
+map("x", "<BS>", ts_select.shrink, { desc = "Shrink Selection" })
+
 -- Go
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "gomod",
