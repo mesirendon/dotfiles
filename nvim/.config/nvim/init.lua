@@ -1,4 +1,7 @@
--- bootstrap lazy.nvim, LazyVim and your plugins
+-- options (incl. leader keys) must load before lazy.nvim sets up plugin keymaps
+require("config.options")
+
+-- bootstrap lazy.nvim and plugins
 require("config.lazy")
 
 vim.opt.guicursor = {

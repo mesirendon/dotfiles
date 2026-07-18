@@ -3,10 +3,8 @@ return {
   -- 1) Making sure dev tools are installed
   {
     "mason-org/mason.nvim",
-    opts = function(_, opts)
-      opts.ensure_installed = vim.tbl_extend("force", opts.ensure_installed or {}, {
-        -- GitUI
-        "gitui",
+    opts = {
+      ensure_installed = {
         -- Go
         "gopls",
         "gofumpt",
@@ -28,8 +26,8 @@ return {
         -- YAML / Docker
         "yaml-language-server",
         "dockerfile-language-server",
-      })
-    end,
+      },
+    },
   },
   {
     "stevearc/aerial.nvim",
@@ -44,9 +42,6 @@ return {
   {
     "neovim/nvim-lspconfig",
     opts = {
-      folds = {
-        enabled = true,
-      },
       servers = {
         gopls = {
           settings = {

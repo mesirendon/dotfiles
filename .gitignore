@@ -3,3 +3,5 @@ ghostty/.config/ghostty/shaders/
 bin/.bin/kitten
 bin/.bin/kitty
 zellij/.config/zellij/plugins
+.claude/
+CLAUDE.md
