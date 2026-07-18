@@ -1,26 +1,25 @@
-
 # Kiro CLI pre block. Keep at the top of this file.
 [[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh"
 
 # Powerlevel10k instant prompt
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-	source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
 # OS Detection
 case "$(uname -s)" in
-	Darwin) OS_FAMILY=mac ;;
-	Linux)  OS_FAMILY=linux ;;
-	*)      OS_FAMILY=other ;;
+Darwin) OS_FAMILY=mac ;;
+Linux) OS_FAMILY=linux ;;
+*) OS_FAMILY=other ;;
 esac
 export OS_FAMILY
 
 # Homebrew shellenv
 if [[ $OS_FAMILY == mac ]]; then
-	[[ -x /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
-	[[ -x /usr/local/bin/brew ]] && eval "$(/usr/local/bin/brew shellenv)"
+  [[ -x /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+  [[ -x /usr/local/bin/brew ]] && eval "$(/usr/local/bin/brew shellenv)"
 elif [[ $OS_FAMILY == linux ]]; then
-	[[ -x /home/linuxbrew/.linuxbrew/bin/brew ]] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+  [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 fi
 
 # Oh My Zsh base
@@ -30,18 +29,18 @@ typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 
 ## Plugins
 plugins=(
-	emoji
+  emoji
   docker
-	git git-extras gitignore
-	golang
-	man node npm nvm
-	sudo 
-	zsh-navigation-tools
+  git git-extras gitignore
+  golang
+  man node npm nvm
+  sudo
+  zsh-navigation-tools
 )
 
 ## Extra completion dirs
 if [[ $OS_FAMILY == mac ]]; then
-	[[ -d "$HOME/.docker/completions" ]] && fpath=("$HOME/.docker/completions" $fpath)
+  [[ -d "$HOME/.docker/completions" ]] && fpath=("$HOME/.docker/completions" $fpath)
 fi
 
 ## nvm (if installed)
@@ -57,13 +56,13 @@ export EDITOR="nvim"
 
 # Go env: Preferring go's own values
 if command -v go >/dev/null 2>&1; then
-	export GOPATH="${GOPATH:-$(go env GOPATH 2>/dev/null || echo "$HOME/go")}"
-	export GOROOT="${GOROOT:-$(go env GOROOT 2>/dev/null || true)}"
+  export GOPATH="${GOPATH:-$(go env GOPATH 2>/dev/null || echo "$HOME/go")}"
+  export GOROOT="${GOROOT:-$(go env GOROOT 2>/dev/null || true)}"
 fi
 
 ## Fallbacks if go isn't on PATH yet
 if [[ -z "${GOROOT:-}" ]] && command -v brew >/dev/null 2>&1; then
-	GOROOT="$(brew --prefix go 2>/dev/null)/libexec"
+  GOROOT="$(brew --prefix go 2>/dev/null)/libexec"
 fi
 export GOPATH="${GOPATH:-$HOME/go}"
 export GOROOT="${GOROOT:-$GOROOT}"
@@ -78,7 +77,7 @@ export mesi="$HOME/Documents/Projects/mesirendon/"
 export GOPRIVATE='github.com/modak-live/*'
 
 # Aliases
-alias rm="rm -i"
+alias rm="rm -fr"
 alias weather="curl -4 http://wttr.in/bogota"
 alias l='eza -l --group-directories-first --git'
 alias la='eza -la --group-directories-first --git'
@@ -89,13 +88,21 @@ alias tw='taskwarrior-tui'
 alias zj='zellij'
 alias zja='zj a $(zj ls -r| fzf --ansi --reverse | cut -d " "  -f 1)'
 copy() {
-	if command -v pbcopy >/dev/null 2>&1; then pbcopy
-	elif [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v clip.exe >/dev/null 2>&1; then clip.exe
-	elif command -v wl-copy >/dev/null 2>&1; then wl-copy
-	elif command -v xclip >/dev/null 2>&1; then xclip -selection clipboard
-	elif command -v xsel >/dev/null 2>&1; then xsel --clipboard --input
-	else cat >/dev/null; echo "No clipboard tool found" >&2; return 1
-	fi
+  if command -v pbcopy >/dev/null 2>&1; then
+    pbcopy
+  elif [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v clip.exe >/dev/null 2>&1; then
+    clip.exe
+  elif command -v wl-copy >/dev/null 2>&1; then
+    wl-copy
+  elif command -v xclip >/dev/null 2>&1; then
+    xclip -selection clipboard
+  elif command -v xsel >/dev/null 2>&1; then
+    xsel --clipboard --input
+  else
+    cat >/dev/null
+    echo "No clipboard tool found" >&2
+    return 1
+  fi
 }
 alias clip='copy <&0'
 alias tmux='tmux -u'
@@ -149,15 +156,15 @@ brew_check_tap() {
 sysupdate() {
   export HOMEBREW_NO_AUTO_UPDATE=1
   if [[ $OS_FAMILY == linux ]]; then
-      sudo apt update && sudo apt -y upgrade && sudo apt -y dist-upgrade \
-      && sudo apt -y autoremove && sudo apt -y autoclean \
-      && brew update && brew upgrade && brew cleanup
-  else
+    sudo apt update && sudo apt -y upgrade && sudo apt -y dist-upgrade &&
+      sudo apt -y autoremove && sudo apt -y autoclean &&
       brew update && brew upgrade && brew cleanup
+  else
+    brew update && brew upgrade && brew cleanup
   fi
 }
 
-mkcd(){ mkdir -p -- "$1" && cd -- "$1" || return; }
+mkcd() { mkdir -p -- "$1" && cd -- "$1" || return; }
 
 # Powerlevel config file
 [[ -f "$HOME/.p10k.zsh" ]] && source "$HOME/.p10k.zsh"
@@ -172,7 +179,6 @@ mkcd(){ mkdir -p -- "$1" && cd -- "$1" || return; }
 export PATH="$PATH:/home/mesi/.local/bin"
 
 eval "$(zoxide init zsh)"
-
 
 # Kiro CLI post block. Keep at the bottom of this file.
 [[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh"

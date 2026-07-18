@@ -1,13 +1,5 @@
 return {
   {
-    "nvim-treesitter/nvim-treesitter",
-    enabled = false,
-  },
-  {
-    "nvim-treesitter/nvim-treesitter-textobjects",
-    enabled = false,
-  },
-  {
     "arborist-ts/arborist.nvim",
     lazy = false,
     config = function()

@@ -7,6 +7,7 @@
     - [Setup](#setup)
   - [Usage](#usage)
     - [Neovim Integrations](#neovim-integrations)
+      - [Architecture](#architecture)
       - [Go Development (`go.nvim`)](#go-development-gonvim)
       - [Go mod utilities](#go-mod-utilities)
       - [Go Testing (`neotest` + `neotest-golang`)](#go-testing-neotest--neotest-golang)
@@ -24,7 +25,7 @@
       - [Colorscheme (`catppuccin`)](#colorscheme-catppuccin)
       - [Dashboard (`snacks.nvim`)](#dashboard-snacksnvim)
       - [UI Select/Input (`dressing.nvim`)](#ui-selectinput-dressingnvim)
-      - [LazyVim Extras Enabled](#lazyvim-extras-enabled)
+      - [Bundled Editing Features](#bundled-editing-features)
       - [Claude Code (`claudecode.nvim`)](#claude-code-claudecodenvim)
       - [Treesitter Text-Object Navigation](#treesitter-text-object-navigation)
       - [Auto-save](#auto-save)
@@ -82,7 +83,92 @@ welcome, provided they do not conflict with my personal setup.
 
 ### Neovim Integrations
 
-The Neovim config is built on [LazyVim](https://www.lazyvim.org/) (`stable` branch). All custom config lives under `nvim/.config/nvim/lua/`.
+The Neovim config is a **standalone** setup built directly on
+[lazy.nvim](https://github.com/folke/lazy.nvim) — no distribution. All config
+lives under `nvim/.config/nvim/lua/`. See
+[nvim/.config/nvim/README.md](nvim/.config/nvim/README.md) for the deep dive.
+
+#### Architecture
+
+| Concern | Choice |
+| --- | --- |
+| Plugin manager | lazy.nvim |
+| Completion | `blink.cmp` + `LuaSnip` |
+| Picker / UI | Snacks (picker, explorer, dashboard), which-key, lualine, bufferline, noice |
+| LSP | native `vim.lsp.config` / `vim.lsp.enable` + Mason |
+| Treesitter | `arborist` (nvim-treesitter disabled) |
+| Theme | `catppuccin-mocha` |
+
+**Load order.** `init.lua` loads options (which set `<leader>`) *before*
+lazy.nvim, then keymaps/autocmds load on `VeryLazy` once the UI is ready:
+
+```mermaid
+flowchart TD
+    A[init.lua] --> B["config.options<br/>leaders + editor options"]
+    B --> C["config.lazy<br/>bootstrap lazy.nvim"]
+    C --> D["require('lazy').setup{ import = 'plugins' }"]
+    D --> E["lazy loads every spec in lua/plugins/"]
+    E --> F{{User event: VeryLazy}}
+    F --> G[config.autocmds]
+    F --> H[config.keymaps]
+```
+
+**Base specs + extensions, merged by name.** lazy.nvim deep-merges every spec
+that shares the same plugin repo name, across all files. Heavy `config`/glue
+lives in **base specs**; small **extension files** only add `opts` that merge
+upward. This is how you plug new things in without touching the plumbing:
+
+```mermaid
+flowchart LR
+    subgraph bases [Base specs - own the glue]
+        LSP["plugins/lsp.lua<br/>nvim-lspconfig"]
+        MAS["plugins/mason.lua<br/>mason"]
+        COD["plugins/coding.lua<br/>conform + nvim-lint"]
+    end
+    subgraph ext [Extensions - opts only]
+        IDE["plugins/ide.lua"]
+        MD["plugins/markdown.lua"]
+    end
+    IDE -->|servers| LSP
+    MD  -->|servers| LSP
+    IDE -->|ensure_installed| MAS
+    MD  -->|ensure_installed| MAS
+    IDE -->|formatters_by_ft, linters_by_ft| COD
+    MD  -->|formatters, linters| COD
+```
+
+**LSP pipeline.** Servers are declared as data (`opts.servers`); `plugins/lsp.lua`
+turns that into running servers, and keymaps attach per-buffer via
+`config/lsp.lua`, gated by what each server supports:
+
+```mermaid
+flowchart TD
+    S1["ide.lua<br/>servers = { gopls, lua_ls, … }"] --> M[merged opts.servers]
+    S2["markdown.lua<br/>servers = { marksman }"] --> M
+    M --> C["plugins/lsp.lua config()"]
+    C --> D["vim.lsp.config '*' with blink.cmp capabilities"]
+    C --> E["loop servers: vim.lsp.config + mason-lspconfig"]
+    E --> G["mason installs missing servers"]
+    G --> H["server starts on matching filetype"]
+    H --> I{{LspAttach}}
+    I --> J["config.lsp.on_attach()<br/>gd/gr/K/&lt;leader&gt;ca… + inlay hints"]
+```
+
+**Adding new plugins & integrations:**
+
+- **New standalone plugin** — drop a file in `lua/plugins/` returning a lazy
+  spec (`{ "author/foo.nvim", opts = {} }`); the whole folder is imported.
+- **New LSP server** — add it to `opts.servers` on `nvim-lspconfig` (in `ide.lua`
+  or a language file); Mason auto-installs it and attach keymaps come for free.
+- **New formatter/linter** — extend `conform.nvim`'s `formatters_by_ft` /
+  `nvim-lint`'s `linters_by_ft`, and add the tool to any `mason.nvim`
+  `ensure_installed` (lists are concatenated via `opts_extend`, never replaced).
+- **New keymaps** — a spec's `keys` field (lazy-loading), `lua/config/keymaps.lua`
+  (global), or a `FileType` autocmd (buffer-local; see the Go block).
+- **Extend an existing plugin** — declare a spec with the *same repo name* and
+  your `opts`; lazy merges it into the base.
+- **Shared helpers** — `require("util").root()`, `require("config.icons").icons`,
+  `require("util").on_load(name, fn)` replace the old `LazyVim.*` global.
 
 #### Go Development (`go.nvim`)
 
@@ -238,7 +324,7 @@ Example: select a block of variable assignments and press `ga=` to align all `=`
 
 #### Symbol Navigation (`aerial.nvim`)
 
-Opened via LazyVim's default `<leader>cs` (or the standard `:AerialToggle`). Shows a sidebar outline of functions, types, and methods with min width 50 / max width 80.
+Opened via `<leader>cs` (or `:AerialToggle`). Shows a sidebar outline of functions, types, and methods with min width 50 / max width 80.
 
 #### Color Highlighting (`nvim-colorizer`)
 
@@ -250,11 +336,11 @@ Renders images inline using the Kitty terminal protocol. Supported formats: `png
 
 #### Snippets (`LuaSnip`)
 
-Custom snippets live in `nvim/.config/nvim/lua/snippets/`. Go template snippets are in `snippets/gotmpl.lua`. Snippets are triggered through the nvim-cmp completion menu.
+Custom snippets live in `nvim/.config/nvim/lua/snippets/`. Go template snippets are in `snippets/gotmpl.lua`. LuaSnip is the snippet engine behind `blink.cmp`, and community snippets (`friendly-snippets`) are loaded too — all surfaced through the blink completion menu.
 
 #### Colorscheme (`catppuccin`)
 
-`catppuccin-mocha` flavour, set as the LazyVim default colorscheme.
+`catppuccin-mocha` flavour, set as the default colorscheme in `plugins/colorscheme.lua`.
 
 #### Dashboard (`snacks.nvim`)
 
@@ -264,13 +350,18 @@ Custom start screen: custom ASCII header, footer ("Write. Build. Learn."), and a
 
 Improves the look of `vim.ui.select`/`vim.ui.input` prompts (used by things like `GoImpl`'s interface-name prompt and LSP code actions).
 
-#### LazyVim Extras Enabled
+#### Bundled Editing Features
 
-Beyond the language servers above, `config/extras.lua` turns on: `coding.mini-surround`, `coding.mini-comment`, `coding.nvim-cmp` (completion engine), `editor.aerial`, `util.gitui`, `util.rest`, and `ai.claudecode`.
+Beyond the language servers above, these are wired as explicit specs under
+`plugins/`: `mini.surround` + `mini.comment` (`coding.lua`), `mini.pairs` +
+`mini.ai` (`coding.lua`), `gitui` (`gitui.lua`, `<leader>gg`/`<leader>gG`),
+`kulala.nvim` REST client (`rest.lua`, `<leader>R*`), `aerial` (`aerial.lua`),
+`render-markdown` + `markdown-preview` (`markdown.lua`), and `claudecode.nvim`
+(`claudecode.lua`).
 
 #### Claude Code (`claudecode.nvim`)
 
-Bridges the Claude Code CLI with Neovim — file context, selection sharing, and diff review. Loaded via `lazyvim.plugins.extras.ai.claudecode`. Activate the CLI with `claude` in a terminal; the plugin syncs the active buffer automatically.
+Bridges the Claude Code CLI with Neovim — file context, selection sharing, and diff review. Configured in `plugins/claudecode.lua`. Activate the CLI with `claude` in a terminal; the plugin syncs the active buffer automatically.
 
 #### Treesitter Text-Object Navigation
 
