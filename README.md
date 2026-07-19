@@ -15,6 +15,7 @@
       - [Go Linting (`nvim-lint` + `golangci-lint`)](#go-linting-nvim-lint--golangci-lint)
       - [LSP (Language Servers)](#lsp-language-servers)
       - [GitHub — Octo (`octo.nvim`)](#github--octo-octonvim)
+      - [GitHub Releases (`nvim-ghrelease`)](#github-releases-nvim-ghrelease)
       - [PlantUML (`plantuml-previewer.vim`)](#plantuml-plantuml-previewervim)
       - [Case Coercion (`vim-abolish`)](#case-coercion-vim-abolish)
       - [Text Alignment (`mini.align`)](#text-alignment-minialign)
@@ -287,6 +288,21 @@ PR and issue management without leaving Neovim. Uses `fzf-lua` as the picker.
 | `<leader>oiv` | View issue |
 
 Inside an Octo buffer, `<localleader>p*` drives PR actions (checkout, merge variants, commits, files, diff), `<localleader>i*` drives issue actions (close, reopen, list), `<localleader>l*` manages labels (add, remove, create), and `<localleader>a*` manages assignees (add, remove). `<localleader>ca/cr/cd` add, reply, or delete comments; `[c/]c` jump between comments.
+
+#### GitHub Releases (`nvim-ghrelease`)
+
+A `gh` CLI wrapper of my own
+([mesirendon/nvim-ghrelease](https://github.com/mesirendon/nvim-ghrelease)) for
+cutting GitHub releases without leaving the editor. Configured in
+`plugins/ghrelease.lua`; loads lazily on the `:GhRelease` command.
+
+| Keymap / Command | Description |
+| --- | --- |
+| `<leader>gr` | Create a GitHub release |
+| `:GhRelease` | Same, as a command |
+
+The plugin's own default keymap is disabled (`keymaps.create = false`) so the
+binding is declared here instead.
 
 #### PlantUML (`plantuml-previewer.vim`)
 
