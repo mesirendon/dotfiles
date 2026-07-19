@@ -13,7 +13,7 @@ return {
     ---@type blink.cmp.Config
     opts = {
       snippets = { preset = "luasnip" },
-      keymap = { preset = "default" },
+      keymap = { preset = "enter" },
       appearance = { nerd_font_variant = "mono" },
       completion = {
         menu = { border = "rounded" },
