@@ -54,6 +54,12 @@ source "$ZSH/oh-my-zsh.sh"
 export PATH="$HOME/.claude/bin:$HOME/.bin:$PATH"
 export EDITOR="nvim"
 
+# Prefer imagemagick-full (keg-only) — it's built with librsvg, so `magick`
+# can rasterize SVGs. The plain imagemagick formula cannot.
+if [[ -d "${HOMEBREW_PREFIX:-/opt/homebrew}/opt/imagemagick-full/bin" ]]; then
+  export PATH="${HOMEBREW_PREFIX:-/opt/homebrew}/opt/imagemagick-full/bin:$PATH"
+fi
+
 # Go env: Preferring go's own values
 if command -v go >/dev/null 2>&1; then
   export GOPATH="${GOPATH:-$(go env GOPATH 2>/dev/null || echo "$HOME/go")}"
