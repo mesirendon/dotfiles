@@ -4,6 +4,9 @@ require("config.options")
 -- bootstrap lazy.nvim and plugins
 require("config.lazy")
 
+-- Make luarocks-installed modules require()-able inside Neovim.
+require("config.luarocks").setup_runtime()
+
 vim.opt.guicursor = {
   "n-v-c:block", -- Normal, Visual, Command mode: block cursor
   "i-ci-ve:ver25", -- Insert, Command-line insert: vertical bar

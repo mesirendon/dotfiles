@@ -106,6 +106,7 @@ echo "===> 🚀 Running post-install scripts"
 timer "ghostty" "$REPO_DIR/scripts/ghostty.sh" || echo "⚠️  Ghostty config failed — check output above"
 timer "zellij" "$REPO_DIR/scripts/zellij.sh" || echo "⚠️  Zellij setup failed — check output above"
 timer "claude-code" "$REPO_DIR/scripts/claude-code.sh" || echo "⚠️  Claude Code install failed — check output above"
+timer "luarocks" "$REPO_DIR/scripts/luarocks.sh" || echo "⚠️  luarocks 5.1 config failed — check output above"
 
 printf '\n===> 💻 Installation Finished in %ds\n' "$(( SECONDS - BOOTSTRAP_START ))"
 echo "===> 🔃 Restart your computer for the changes to take effect 🔃 <==="

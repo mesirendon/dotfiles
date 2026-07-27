@@ -1,0 +1,14 @@
+# Declarative luarocks manifest — single source of truth for both:
+#   * scripts/luarocks.sh (bootstrap) installs each rock for Neovim's LuaJIT (Lua 5.1)
+#   * lua/config/rocks.lua feeds lazydev the matching LuaCATS annotation stubs (docs)
+#
+# Columns (whitespace-separated); "#" comments and blank lines are ignored.
+#   rock          luacats-repo        words
+#   - rock         : name passed to `luarocks --lua-version 5.1 --local install`
+#   - luacats-repo : github repo of LuaCATS annotation stubs, or "-" for none
+#   - words        : comma-separated Lua patterns that load the stubs on demand, or "-"
+#
+# Browse available stubs at https://github.com/LuaCATS.
+
+# rock        luacats-repo        words
+luasocket     LuaCATS/luasocket   socket,mime
