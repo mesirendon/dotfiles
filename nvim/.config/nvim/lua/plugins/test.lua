@@ -1,4 +1,78 @@
-return {
+local function go_test_args()
+  local args = {
+    "-v",
+    "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
+  }
+
+  -- -race requires CGO + a working C toolchain; probe with a real build
+  -- to catch ABI/linker issues (common on Linux arm64 with Homebrew Go)
+  vim.fn.system("go build -race -o /dev/null std 2>&1")
+  if vim.v.shell_error == 0 then
+    table.insert(args, 2, "-race")
+  end
+
+  return args
+end
+
+-- Adapter registry. To support a new language: add one entry here (and, if it
+-- needs extra keymaps, an `ft_extras` entry in lua/config/testing.lua).
+-- `spec` is the lazy plugin spec, `build` returns the configured adapter.
+local adapters = {
+  {
+    spec = { "fredrikaverpil/neotest-golang", version = "*", branch = "main" },
+    build = function()
+      return require("neotest-golang")({ go_test_args = go_test_args() })
+    end,
+  },
+  {
+    spec = "nvim-neotest/neotest-python",
+    build = function()
+      return require("neotest-python")({ dap = { justMyCode = false } })
+    end,
+  },
+  {
+    spec = "nvim-neotest/neotest-jest",
+    build = function()
+      return require("neotest-jest")({ jestCommand = "npm test --" })
+    end,
+  },
+  {
+    spec = "marilari88/neotest-vitest",
+    build = function()
+      return require("neotest-vitest")
+    end,
+  },
+  {
+    spec = "nvim-neotest/neotest-plenary",
+    build = function()
+      return require("neotest-plenary")
+    end,
+  },
+  -- Catch-all, must stay LAST: hands the filetypes below off to vim-test.
+  {
+    spec = "nvim-neotest/neotest-vim-test",
+    build = function()
+      return require("neotest-vim-test")({
+        allow_file_types = { "ruby", "elixir", "php", "rust", "java", "cs" },
+      })
+    end,
+  },
+}
+
+local function build_adapters()
+  local built = {}
+  for _, adapter in ipairs(adapters) do
+    local ok, instance = pcall(adapter.build)
+    if ok then
+      table.insert(built, instance)
+    else
+      vim.notify(("neotest: skipping adapter (%s)"):format(instance), vim.log.levels.DEBUG, { title = "neotest" })
+    end
+  end
+  return built
+end
+
+local specs = {
   {
     "nvim-neotest/neotest",
     event = "VeryLazy",
@@ -6,35 +80,11 @@ return {
       "nvim-neotest/nvim-nio",
       "nvim-lua/plenary.nvim",
       "antoinemadec/FixCursorHold.nvim",
-      "nvim-neotest/neotest-plenary",
-      "nvim-neotest/neotest-vim-test",
-      {
-        "fredrikaverpil/neotest-golang",
-        version = "*",
-        branch = "main",
-      },
     },
     config = function()
-      local go_test_args = {
-        "-v",
-        "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
-      }
-
-      -- -race requires CGO + a working C toolchain; probe with a real build
-      -- to catch ABI/linker issues (common on Linux arm64 with Homebrew Go)
-      vim.fn.system("go build -race -o /dev/null std 2>&1")
-      if vim.v.shell_error == 0 then
-        table.insert(go_test_args, 2, "-race")
-      end
-
-      local neotest_golang_opts = {
-        go_test_args = go_test_args,
-      }
       local neotest = require("neotest")
       neotest.setup({
-        adapters = {
-          require("neotest-golang")(neotest_golang_opts),
-        },
+        adapters = build_adapters(),
         benchmark = {
           enabled = true,
         },
@@ -173,3 +223,15 @@ return {
     end,
   },
 }
+
+-- Adapters are standalone lazy specs rather than neotest dependencies: several
+-- of them require `neotest.lib` at module load, so force-loading one ahead of
+-- neotest would make a cycle (adapter -> neotest -> config -> adapter). Loading
+-- them only from neotest's own config, above, keeps the graph acyclic.
+for _, adapter in ipairs(adapters) do
+  local spec = type(adapter.spec) == "table" and vim.deepcopy(adapter.spec) or { adapter.spec }
+  spec.lazy = true
+  table.insert(specs, spec)
+end
+
+return specs

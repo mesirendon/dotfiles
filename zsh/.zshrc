@@ -89,7 +89,6 @@ alias l='eza -l --group-directories-first --git'
 alias la='eza -la --group-directories-first --git'
 alias dcomp='docker-compose'
 alias vim='nvim'
-alias vimreset='rm -rf ~/.cache/nvim && rm -rf ~/.local/share/nvim && rm -rf ~/.local/state/nvim && rm ~/.config/nvim/lazy-lock.json'
 alias tw='taskwarrior-tui'
 alias zj='zellij'
 alias zja='zj a $(zj ls -r| fzf --ansi --reverse | cut -d " "  -f 1)'
@@ -171,6 +170,56 @@ sysupdate() {
 }
 
 mkcd() { mkdir -p -- "$1" && cd -- "$1" || return; }
+
+# Wipe Neovim's plugins/cache/state for a clean reinstall, preserving the ShaDa file
+# (~/.local/state/nvim/shada/main.shada) so recorded macros, marks and history survive.
+# Pass --hard (or -f) to skip preservation and reset everything.
+# NOTE: `command rm` is deliberate -- `alias rm="rm -fr"` above would otherwise be
+# expanded into this function's body at definition time.
+vimreset() {
+  local hard=0
+  case "${1:-}" in
+    --hard | -f) hard=1 ;;
+    "") ;;
+    *)
+      print -u2 "Usage: vimreset [--hard]"
+      return 1
+      ;;
+  esac
+
+  if ((!hard)) && pgrep -x nvim >/dev/null 2>&1; then
+    print -u2 "⚠️  Neovim is still running; it would overwrite the restored ShaDa on exit."
+    print -u2 "    Quit all instances first, or use 'vimreset --hard' to reset anyway."
+    return 1
+  fi
+
+  local state="$HOME/.local/state/nvim"
+  local shada="$state/shada/main.shada"
+  local snapshot=""
+
+  if ((!hard)) && [[ -f "$shada" ]]; then
+    snapshot="$(mktemp -t nvim-shada)" || return 1
+    if ! cp "$shada" "$snapshot"; then
+      command rm -f "$snapshot"
+      print -u2 "⚠️  Could not snapshot $shada; aborting."
+      return 1
+    fi
+  fi
+
+  command rm -rf "$HOME/.cache/nvim" "$HOME/.local/share/nvim" "$state"
+  command rm -f "$HOME/.config/nvim/lazy-lock.json"
+
+  if [[ -n "$snapshot" ]]; then
+    mkdir -p "$state/shada"
+    mv "$snapshot" "$shada"
+    chmod 600 "$shada"
+    print "✅ Neovim reset; preserved macros/marks/history in $shada"
+  elif ((hard)); then
+    print "✅ Neovim reset (--hard); ShaDa discarded"
+  else
+    print "✅ Neovim reset; no ShaDa file found to preserve"
+  fi
+}
 
 # Powerlevel config file
 [[ -f "$HOME/.p10k.zsh" ]] && source "$HOME/.p10k.zsh"

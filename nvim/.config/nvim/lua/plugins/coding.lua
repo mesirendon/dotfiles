@@ -119,12 +119,17 @@ return {
     "folke/lazydev.nvim",
     ft = "lua",
     cmd = "LazyDev",
+    -- LuaCATS annotation stubs give hover/completion docs for luarocks libraries.
+    -- They are declared once in the Rockfile manifest (which also drives installation
+    -- via scripts/luarocks.sh); config.rocks turns each entry into a stub plugin + a
+    -- lazydev library mapping. Add rocks there, not here.
+    dependencies = require("config.rocks").plugins(),
     opts = {
-      library = {
+      library = vim.list_extend({
         { path = "${3rd}/luv/library", words = { "vim%.uv" } },
         { path = "snacks.nvim", words = { "Snacks" } },
         { path = "lazy.nvim", words = { "LazyVim" } },
-      },
+      }, require("config.rocks").lazydev_library()),
     },
   },
 

@@ -8,10 +8,12 @@
   - [Usage](#usage)
     - [Neovim Integrations](#neovim-integrations)
       - [Architecture](#architecture)
+      - [Lua Rocks (`luarocks`)](#lua-rocks-luarocks)
       - [Go Development (`go.nvim`)](#go-development-gonvim)
       - [Go mod utilities](#go-mod-utilities)
-      - [Go Testing (`neotest` + `neotest-golang`)](#go-testing-neotest--neotest-golang)
-      - [Go Debugging (`nvim-dap` + `nvim-dap-go`)](#go-debugging-nvim-dap--nvim-dap-go)
+      - [Testing (`neotest`)](#testing-neotest)
+        - [Go extras](#go-extras)
+      - [Debugging (`nvim-dap`)](#debugging-nvim-dap)
       - [Go Linting (`nvim-lint` + `golangci-lint`)](#go-linting-nvim-lint--golangci-lint)
       - [LSP (Language Servers)](#lsp-language-servers)
       - [GitHub — Octo (`octo.nvim`)](#github--octo-octonvim)
@@ -38,6 +40,8 @@
       - [Date format](#date-format)
       - [TUI (`taskwarrior-tui`)](#tui-taskwarrior-tui)
       - [Color scheme (Nord-inspired)](#color-scheme-nord-inspired)
+    - [Shell Helpers](#shell-helpers)
+      - [`vimreset` — clean Neovim reinstall](#vimreset--clean-neovim-reinstall)
 <!--toc:end-->
 
 This project streamlines the installation of software and configurations I use
@@ -86,8 +90,7 @@ welcome, provided they do not conflict with my personal setup.
 
 The Neovim config is a **standalone** setup built directly on
 [lazy.nvim](https://github.com/folke/lazy.nvim) — no distribution. All config
-lives under `nvim/.config/nvim/lua/`. See
-[nvim/.config/nvim/README.md](nvim/.config/nvim/README.md) for the deep dive.
+lives under `nvim/.config/nvim/lua/`.
 
 #### Architecture
 
@@ -166,10 +169,93 @@ flowchart TD
   `ensure_installed` (lists are concatenated via `opts_extend`, never replaced).
 - **New keymaps** — a spec's `keys` field (lazy-loading), `lua/config/keymaps.lua`
   (global), or a `FileType` autocmd (buffer-local; see the Go block).
+- **New test/debug language** — add an adapter to the `adapters` registry in
+  `lua/plugins/test.lua`; if it needs extra keymaps, add an `ft_extras` entry in
+  `lua/config/testing.lua`. The `<leader>t`/`<leader>d` menus themselves are
+  language-agnostic and need no change.
 - **Extend an existing plugin** — declare a spec with the *same repo name* and
   your `opts`; lazy merges it into the base.
 - **Shared helpers** — `require("util").root()`, `require("config.icons").icons`,
   `require("util").on_load(name, fn)` replace the old `LazyVim.*` global.
+
+#### Lua Rocks (`luarocks`)
+
+Neovim embeds **LuaJIT (Lua 5.1)**, so any rock you want to `require()` from your
+config must be *built for 5.1* — a rock installed against the system Lua 5.4 will
+not load. Homebrew's `luarocks` defaults to the newest Lua it can find, so this
+setup pins it to Homebrew's `luajit` (both are in the `Brewfile`).
+
+Rocks are managed **declaratively** from a single manifest,
+`nvim/.config/nvim/Rockfile`, which drives both installation and editor docs:
+
+| File | Role |
+| --- | --- |
+| `nvim/.config/nvim/Rockfile` | The manifest — single source of truth |
+| `scripts/luarocks.sh` | Bootstrap: writes `~/.luarocks/config-5.1.lua` pointing at LuaJIT, then installs every rock in the manifest |
+| `lua/config/luarocks.lua` | Runtime: appends the luarocks trees to `package.path`/`cpath` so `require()` works, and feeds the same dirs to `lua_ls` |
+| `lua/config/rocks.lua` | Docs: turns manifest entries into lazydev LuaCATS stub plugins |
+
+```mermaid
+flowchart TD
+    RF["Rockfile<br/>luasocket LuaCATS/luasocket socket,mime"]
+    RF --> SH["scripts/luarocks.sh<br/>(bootstrap.sh)"]
+    RF --> RK["config/rocks.lua"]
+    SH --> INST["luarocks --lua-version 5.1 --local install<br/>→ ~/.luarocks"]
+    INST --> LR["config/luarocks.lua"]
+    LR --> PP["package.path / cpath<br/>require('socket') works"]
+    LR --> LS["lua_ls workspace.library<br/>(plugins/ide.lua)"]
+    RK --> DEP["lazydev dependencies<br/>(plugins/coding.lua)"]
+    RK --> LIB["lazydev library + words<br/>hover & completion docs"]
+```
+
+**Manifest format.** Three whitespace-separated columns; `#` comments and blank
+lines are ignored. Use `-` to skip an optional column.
+
+```text
+# rock        luacats-repo        words
+luasocket     LuaCATS/luasocket   socket,mime
+```
+
+| Column | Meaning |
+| --- | --- |
+| `rock` | Name passed to `luarocks --lua-version 5.1 --local install` |
+| `luacats-repo` | GitHub repo of [LuaCATS](https://github.com/LuaCATS) annotation stubs, or `-` for none |
+| `words` | Comma-separated Lua patterns that load the stubs on demand, or `-` |
+
+**Adding a rock:**
+
+1. Append a line to `nvim/.config/nvim/Rockfile`.
+2. Run `./scripts/luarocks.sh` — idempotent, and skips rocks already installed.
+3. Restart Neovim; lazy.nvim picks up the new LuaCATS stub repo automatically.
+
+**Removing a rock:** delete its line, then
+`luarocks --lua-version 5.1 --local remove <rock>` and `:Lazy clean` to drop the
+now-unreferenced stub plugin.
+
+**One-off install** (not persisted to a fresh machine — prefer the Rockfile):
+
+```bash
+luarocks --lua-version 5.1 --local install <rock>
+```
+
+**Inspecting:**
+
+| Command | Description |
+| --- | --- |
+| `luarocks --lua-version 5.1 list` | Rocks installed for LuaJIT |
+| `:lua print(require("socket")._VERSION)` | Confirm a rock loads inside Neovim |
+| `:lua vim.print(require("config.luarocks").lua_ls_library())` | Dirs handed to `lua_ls` |
+| `:lua vim.print(require("config.rocks").entries())` | Parsed manifest |
+
+Every step degrades gracefully: `scripts/luarocks.sh` exits cleanly if `brew`,
+`luajit`, or `luarocks` is missing, and `config/luarocks.lua` returns empty
+values when `luarocks` is not on `PATH` — so the config still loads on a machine
+without any of it.
+
+> Rocks install into `~/.luarocks`, **outside** Neovim's state dirs, so they are
+> not affected by [`vimreset`](#vimreset--clean-neovim-reinstall). The LuaCATS
+> stub plugins live under `~/.local/share/nvim/lazy` and are reinstalled by
+> lazy.nvim on the next launch.
 
 #### Go Development (`go.nvim`)
 
@@ -196,46 +282,62 @@ Inside `go.mod` files, `<localleader>g*` drives module commands.
 | `<localleader>gt` | `go mod tidy` |
 | `<localleader>gu` | Bump Go version + toolchain to latest (fetches from go.dev) |
 
-#### Go Testing (`neotest` + `neotest-golang`)
+#### Testing (`neotest`)
 
-`<localleader>t*` inside `.go` files. Tests run with `-v -coverprofile=coverage.out` and `-race` when CGO is available.
-
-| Keymap | Description |
-| --- | --- |
-| `<localleader>tn` | Run nearest test |
-| `<localleader>tv` | Run nearest test (verbose) |
-| `<localleader>tf` | Run all tests in current file |
-| `<localleader>tp` | Run all tests in current package/directory |
-| `<localleader>ta` | Run all tests in the suite |
-| `<localleader>tA` | Run all tests with optional `-tags` prompt |
-| `<localleader>tu` | Run package tests with `-update` (update snapshots) |
-| `<localleader>tl` | Re-run last test |
-| `<localleader>to` | Show last test output |
-| `<localleader>ts` | Toggle test summary panel |
-| `<localleader>td` | Debug nearest test (launches Delve) |
-| `<localleader>tC` | Print coverage summary from `coverage.out` |
-| `<localleader>tH` | Open HTML coverage report in browser |
-
-#### Go Debugging (`nvim-dap` + `nvim-dap-go`)
-
-`<localleader>d*` inside `.go` files. Delve is the adapter.
+`<leader>t*` in **any** buffer. Neotest picks the adapter that claims the current file: Go (`neotest-golang`), Python (`pytest`), JS/TS (`jest`, `vitest`), Lua (`plenary`), and a `vim-test` catch-all for Ruby, Elixir, PHP, Rust, Java and C#.
 
 | Keymap | Description |
 | --- | --- |
-| `<localleader>db` | Toggle breakpoint |
-| `<localleader>dB` | Set conditional breakpoint |
-| `<localleader>dC` | Clear all breakpoints |
-| `<localleader>dc` | Start / continue |
-| `<localleader>di` | Step into |
-| `<localleader>do` | Step over |
-| `<localleader>dO` | Step out |
-| `<localleader>dr` | Restart session |
-| `<localleader>dS` | Stop session |
-| `<localleader>du` | Toggle DAP UI (scopes / stacks / breakpoints / REPL) |
-| `<localleader>ds` | Open scopes/stacks/breakpoints view |
-| `<localleader>dv` | Inspect variable under cursor |
+| `<leader>tn` | Run nearest test |
+| `<leader>tv` | Run nearest test (verbose) |
+| `<leader>tf` | Run all tests in current file |
+| `<leader>tp` | Run all tests in current directory |
+| `<leader>ta` | Run all tests in the suite |
+| `<leader>tl` | Re-run last test |
+| `<leader>tS` | Stop running tests |
+| `<leader>tw` | Toggle watch mode for the current file |
+| `<leader>to` | Show last test output |
+| `<leader>tO` | Toggle output panel |
+| `<leader>ts` | Toggle test summary panel |
+| `<leader>td` | Debug nearest test (DAP strategy) |
 
-Two launch configs are available when starting (`<localleader>dc`): **Debug Main** (workspace `main`) and **Debug Current File**. `AWS_PROFILE` and `AWS_REGION` are forwarded automatically.
+Adding a language means adding one entry to the `adapters` registry in `nvim/.config/nvim/lua/plugins/test.lua`.
+
+##### Go extras
+
+Available under the same `<leader>t` menu, but only inside `.go` files. Go tests run with `-v -coverprofile=coverage.out` and `-race` when CGO is available.
+
+| Keymap | Description |
+| --- | --- |
+| `<leader>tA` | Run all tests with optional `-tags` prompt |
+| `<leader>tu` | Run package tests with `-update` (update snapshots) |
+| `<leader>tC` | Print coverage summary from `coverage.out` |
+| `<leader>tH` | Open HTML coverage report in browser |
+
+Per-filetype extras like these are registered in the `ft_extras` table in `nvim/.config/nvim/lua/config/testing.lua`.
+
+#### Debugging (`nvim-dap`)
+
+`<leader>d*` in **any** buffer. Delve backs Go (via `nvim-dap-go`); `mason-nvim-dap` installs and configures the adapters for Python, JS/TS, Rust/C/C++ and Bash.
+
+| Keymap | Description |
+| --- | --- |
+| `<leader>db` | Toggle breakpoint |
+| `<leader>dB` | Set conditional breakpoint |
+| `<leader>dC` | Clear all breakpoints |
+| `<leader>dc` | Start / continue |
+| `<leader>di` | Step into |
+| `<leader>do` | Step over |
+| `<leader>dO` | Step out |
+| `<leader>dr` | Restart session |
+| `<leader>dL` | Re-run last configuration |
+| `<leader>dS` | Stop session |
+| `<leader>du` | Toggle DAP UI (scopes / stacks / breakpoints / REPL) |
+| `<leader>ds` | Open scopes/stacks/breakpoints view |
+| `<leader>dv` | Inspect variable under cursor |
+| `<leader>dR` | Toggle DAP REPL |
+
+In Go, two launch configs are available when starting (`<leader>dc`): **Debug Main** (workspace `main`) and **Debug Current File**. `AWS_PROFILE` and `AWS_REGION` are forwarded automatically.
 
 #### Go Linting (`nvim-lint` + `golangci-lint`)
 
@@ -472,3 +574,40 @@ Launch with `tw`. Vim-style keybindings:
 | Overdue | White on red |
 | Completed | Bold black on green |
 | Active (started) | Bold white on magenta |
+
+---
+
+### Shell Helpers
+
+Defined in `zsh/.zshrc`.
+
+#### `vimreset` — clean Neovim reinstall
+
+Wipes Neovim's plugins, cache, and state so the next launch rebuilds everything
+from scratch, **while preserving your recorded macros**.
+
+```bash
+vimreset          # reset, keep macros/marks/history
+vimreset --hard   # reset everything, discard macros too  (alias: -f)
+```
+
+| Path | Reset | Notes |
+| --- | --- | --- |
+| `~/.cache/nvim` | removed | Rebuilt on next launch |
+| `~/.local/share/nvim` | removed | Plugins + Mason tools reinstall |
+| `~/.local/state/nvim` | removed | Logs, undo, swap |
+| `~/.config/nvim/lazy-lock.json` | removed | Not git-tracked; lazy.nvim re-resolves |
+| `~/.local/state/nvim/shada/main.shada` | **preserved** | Registers, marks, history |
+| `~/.luarocks` | untouched | See [Lua Rocks](#lua-rocks-luarocks) |
+
+**Why the ShaDa file matters.** Macros recorded with `q` live in registers, and
+Neovim persists registers to `~/.local/state/nvim/shada/main.shada` — inside the
+state directory the reset deletes. `vimreset` snapshots that file first and
+restores it afterwards, so `@a` still works after a rebuild. Global marks, jumps,
+and command/search history ride along in the same file and come back too.
+
+**Macros are only written on exit.** Neovim flushes its ShaDa when it quits, so
+quit all instances before resetting — otherwise the macro you just recorded was
+never persisted in the first place. `vimreset` refuses to run while `nvim` is
+alive for this reason (a running instance would also overwrite the restored file
+on exit). Use `--hard` to bypass the check when you genuinely want a clean slate.

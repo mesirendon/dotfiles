@@ -82,7 +82,10 @@ return {
           settings = {
             Lua = {
               diagnostics = { globals = { "vim" } },
-              workspace = { checkThirdParty = false },
+              workspace = {
+                checkThirdParty = false,
+                library = require("config.luarocks").lua_ls_library(),
+              },
             },
           },
         },
@@ -124,8 +127,64 @@ return {
       },
     },
   },
-  -- 5) Debugging for Go
-  { "mfussenegger/nvim-dap" },
+  -- 5) Debugging
+  {
+    "mfussenegger/nvim-dap",
+    config = function()
+      local dap = require("dap")
+
+      -- mason-nvim-dap installs js-debug-adapter but ships no adapter
+      -- definition for it, so wire pwa-node up by hand.
+      local js_debug = vim.fn.stdpath("data") .. "/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js"
+      dap.adapters["pwa-node"] = {
+        type = "server",
+        host = "localhost",
+        port = "${port}",
+        executable = {
+          command = "node",
+          args = { js_debug, "${port}" },
+        },
+      }
+
+      for _, ft in ipairs({ "javascript", "typescript", "javascriptreact", "typescriptreact" }) do
+        dap.configurations[ft] = {
+          {
+            type = "pwa-node",
+            request = "launch",
+            name = "Launch Current File",
+            program = "${file}",
+            cwd = "${workspaceFolder}",
+            sourceMaps = true,
+          },
+          {
+            type = "pwa-node",
+            request = "attach",
+            name = "Attach to Process",
+            processId = require("dap.utils").pick_process,
+            cwd = "${workspaceFolder}",
+            sourceMaps = true,
+          },
+        }
+      end
+    end,
+  },
+  {
+    -- Installs and self-configures debug adapters for the non-Go languages.
+    -- Add a language by appending its mason package name to ensure_installed.
+    "jay-babu/mason-nvim-dap.nvim",
+    dependencies = { "mason-org/mason.nvim", "mfussenegger/nvim-dap" },
+    opts = {
+      ensure_installed = { "python", "js", "codelldb", "bash" },
+      automatic_installation = true,
+      handlers = {
+        function(config)
+          require("mason-nvim-dap").default_setup(config)
+        end,
+        -- No-op: nvim-dap-go owns dap.adapters.go (dlv + AWS env passthrough).
+        delve = function() end,
+      },
+    },
+  },
   {
     "leoluz/nvim-dap-go",
     ft = "go",
