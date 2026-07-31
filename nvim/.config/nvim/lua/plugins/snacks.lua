@@ -24,6 +24,15 @@ return {
             },
           },
         },
+        sources = {
+          -- monorepo-aware: recent files resolve to their module root, not just
+          -- the enclosing `.git` dir (see util/projects.lua)
+          projects = {
+            finder = function(opts, ctx)
+              return require("util.projects").finder(opts, ctx)
+            end,
+          },
+        },
         actions = {
           toggle_cwd = function(p)
             local root = require("util").root({ buf = p.input.filter.current_buf, normalize = true })
