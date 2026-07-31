@@ -4,8 +4,15 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
--- Root-dir detection (used by util.root): lsp workspace, then .git/lua, then cwd.
-vim.g.root_spec = { "lsp", { ".git", "lua" }, "cwd" }
+-- Root-dir detection (used by util.root): sub-project markers first, so a package
+-- inside a monorepo (go/transactions, ts/mcdk) wins over the repo-wide .git; then the
+-- lsp workspace, then .git/lua, then cwd.
+vim.g.root_spec = {
+  { "go.mod", "go.work", "package.json", "deno.json" },
+  "lsp",
+  { ".git", "lua" },
+  "cwd",
+}
 vim.g.root_lsp_ignore = { "copilot" }
 
 -- Snacks animations
@@ -79,3 +86,5 @@ opt.wrap = false -- Disable line wrap
 
 -- Fix markdown indentation settings
 vim.g.markdown_recommended_style = 0
+
+vim.o.showtabline = 2

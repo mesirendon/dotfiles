@@ -2,49 +2,145 @@
 local icons = require("config.icons").icons
 local Util = require("util")
 
+-- Nerd Font glyphs in the Private Use Area are written as escapes rather than literal
+-- characters: pasted literals get silently dropped somewhere in this repo's tooling
+-- (see the empty `glyph = ""` strings that reached git in the mini.icons spec below).
+local FLASK = "\u{f0c3}" -- nf-fa-flask
+local DOCKER = "\u{e7b0}" -- nf-dev-docker
+local CONFIG = "\u{e615}" -- nf-seti-config
+
 return {
   -- Buffer tabs
   {
     "akinsho/bufferline.nvim",
     event = "VeryLazy",
-    keys = {
-      { "<leader>bp", "<Cmd>BufferLineTogglePin<CR>", desc = "Toggle Pin" },
-      { "<leader>bP", "<Cmd>BufferLineGroupClose ungrouped<CR>", desc = "Delete Non-Pinned Buffers" },
-      { "<leader>br", "<Cmd>BufferLineCloseRight<CR>", desc = "Delete Buffers to the Right" },
-      { "<leader>bl", "<Cmd>BufferLineCloseLeft<CR>", desc = "Delete Buffers to the Left" },
-      { "<S-h>", "<cmd>BufferLineCyclePrev<cr>", desc = "Prev Buffer" },
-      { "<S-l>", "<cmd>BufferLineCycleNext<cr>", desc = "Next Buffer" },
-      { "[b", "<cmd>BufferLineCyclePrev<cr>", desc = "Prev Buffer" },
-      { "]b", "<cmd>BufferLineCycleNext<cr>", desc = "Next Buffer" },
-      { "[B", "<cmd>BufferLineMovePrev<cr>", desc = "Move buffer prev" },
-      { "]B", "<cmd>BufferLineMoveNext<cr>", desc = "Move buffer next" },
-      { "<leader>bj", "<cmd>BufferLinePick<cr>", desc = "Pick Buffer" },
-    },
-    opts = {
-      options = {
-        close_command = function(n)
-          Snacks.bufdelete(n)
-        end,
-        right_mouse_command = function(n)
-          Snacks.bufdelete(n)
-        end,
-        diagnostics = "nvim_lsp",
-        always_show_bufferline = false,
-        diagnostics_indicator = function(_, _, diag)
-          local ret = (diag.error and icons.diagnostics.Error .. diag.error .. " " or "")
-            .. (diag.warning and icons.diagnostics.Warn .. diag.warning or "")
-          return vim.trim(ret)
-        end,
-        offsets = {
-          { filetype = "snacks_layout_box" },
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    keys = function()
+      local keys = {
+        { "<leader>bp", "<Cmd>BufferLineTogglePin<CR>", desc = "Toggle Pin" },
+        { "<leader>bP", "<Cmd>BufferLineGroupClose ungrouped<CR>", desc = "Delete Non-Pinned Buffers" },
+        { "<leader>br", "<Cmd>BufferLineCloseRight<CR>", desc = "Delete Buffers to the Right" },
+        { "<leader>bl", "<Cmd>BufferLineCloseLeft<CR>", desc = "Delete Buffers to the Left" },
+        { "<S-h>", "<cmd>BufferLineCyclePrev<cr>", desc = "Prev Buffer" },
+        { "<S-l>", "<cmd>BufferLineCycleNext<cr>", desc = "Next Buffer" },
+        { "[b", "<cmd>BufferLineCyclePrev<cr>", desc = "Prev Buffer" },
+        { "]b", "<cmd>BufferLineCycleNext<cr>", desc = "Next Buffer" },
+        { "[B", "<cmd>BufferLineMovePrev<cr>", desc = "Move buffer prev" },
+        { "]B", "<cmd>BufferLineMoveNext<cr>", desc = "Move buffer next" },
+        -- Pick: letters overlay each tab only while the prompt is active
+        { "<leader>bj", "<cmd>BufferLinePick<cr>", desc = "Pick Buffer" },
+        { "<leader>bJ", "<cmd>BufferLinePickClose<cr>", desc = "Pick Buffer to Close" },
+        { "gb", "<cmd>BufferLinePick<cr>", desc = "Pick Buffer" },
+        -- Reorder
+        { "<A-Left>", "<cmd>BufferLineMovePrev<cr>", desc = "Move Buffer Left" },
+        { "<A-Right>", "<cmd>BufferLineMoveNext<cr>", desc = "Move Buffer Right" },
+        -- Sort
+        { "<leader>bs", "", desc = "+sort" },
+        { "<leader>bse", "<cmd>BufferLineSortByExtension<cr>", desc = "Sort by Extension" },
+        { "<leader>bsd", "<cmd>BufferLineSortByDirectory<cr>", desc = "Sort by Directory" },
+        { "<leader>bsr", "<cmd>BufferLineSortByRelativeDirectory<cr>", desc = "Sort by Relative Directory" },
+        { "<leader>bst", "<cmd>BufferLineSortByTabs<cr>", desc = "Sort by Tabs" },
+        -- Groups
+        { "<leader>bg", "", desc = "+groups" },
+        { "<leader>bgg", "<cmd>BufferLineGroupToggle Go<cr>", desc = "Toggle Go Group" },
+        { "<leader>bgt", "<cmd>BufferLineGroupToggle Tests<cr>", desc = "Toggle Tests Group" },
+      }
+      for i = 1, 9 do
+        table.insert(keys, {
+          ("<A-%d>"):format(i),
+          ("<cmd>BufferLineGoToBuffer %d<cr>"):format(i),
+          desc = ("Go to Buffer %d"):format(i),
+        })
+      end
+      table.insert(keys, { "<A-0>", "<cmd>BufferLineGoToBuffer -1<cr>", desc = "Go to Last Buffer" })
+      return keys
+    end,
+    opts = function()
+      -- Take the Go group's colour from devicons so it tracks upstream. The glyph itself
+      -- comes from devicons per-buffer, so only the colour is needed here.
+      local go_color = "#00ADD8"
+      local ok, devicons = pcall(require, "nvim-web-devicons")
+      if ok then
+        local _, color = devicons.get_icon_color_by_filetype("go", { default = true })
+        go_color = color or go_color
+      end
+
+      local groups = require("bufferline.groups")
+
+      return {
+        options = {
+          close_command = function(n)
+            Snacks.bufdelete(n)
+          end,
+          right_mouse_command = function(n)
+            Snacks.bufdelete(n)
+          end,
+          diagnostics = "nvim_lsp",
+          always_show_bufferline = false,
+          indicator = { style = "underline" },
+          separator_style = "slant",
+          -- Baseline only: manual moves and the SortBy commands set `custom_sort`,
+          -- which short-circuits this (see bufferline/sorters.lua).
+          sort_by = "insert_after_current",
+          move_wraps_at_ends = true,
+          hover = { enabled = true, delay = 200, reveal = { "close" } },
+          -- Home row first, so the letters picked for buffers whose first letter is
+          -- already taken land under your fingers. Also restores the `n` upstream omits.
+          pick = { alphabet = "asdfjklghnmxcvbziowerutyqp" },
+          diagnostics_indicator = function(_, _, diag)
+            local ret = (diag.error and icons.diagnostics.Error .. diag.error .. " " or "")
+              .. (diag.warning and icons.diagnostics.Warn .. diag.warning or "")
+            return vim.trim(ret)
+          end,
+          offsets = {
+            { filetype = "snacks_layout_box" },
+          },
+          get_element_icon = function(o)
+            -- devicons matches whole filenames then extensions, so `*_test.go` has to
+            -- be special-cased here; returning nil falls through to the devicons lookup.
+            if o.path and o.path:match("_test%.go$") then
+              return FLASK, "BufferlineGoTestIcon"
+            end
+            return icons.ft[o.filetype]
+          end,
+          groups = {
+            options = { toggle_hidden_on_enter = true },
+            items = {
+              groups.builtin.pinned:with({ icon = "\u{f08d}" }),
+              -- No `icon` on these two on purpose: bufferline renders a group's icon on
+              -- *every* buffer in it (groups.lua:M.component), which would double up with
+              -- the per-tab icon. The gopher/flask above already carry the distinction.
+              {
+                -- Matchers must be mutually exclusive: groups are resolved with an
+                -- unordered pairs() loop, so `priority` cannot break a tie.
+                name = "Go",
+                highlight = { fg = go_color, sp = go_color },
+                matcher = function(buf)
+                  return buf.path and buf.path:match("%.go$") and not buf.path:match("_test%.go$")
+                end,
+              },
+              {
+                name = "Tests",
+                highlight = { fg = "#a6e3a1", sp = "#a6e3a1" },
+                matcher = function(buf)
+                  return buf.path and buf.path:match("_test%.go$")
+                end,
+              },
+              groups.builtin.ungrouped,
+            },
+          },
         },
-        get_element_icon = function(o)
-          return icons.ft[o.filetype]
-        end,
-      },
-    },
+      }
+    end,
     config = function(_, opts)
       require("bufferline").setup(opts)
+
+      local function set_hl()
+        vim.api.nvim_set_hl(0, "BufferlineGoTestIcon", { fg = "#a6e3a1" })
+      end
+      set_hl()
+      vim.api.nvim_create_autocmd("ColorScheme", { callback = set_hl })
+
       -- Fix bufferline when restoring a session
       vim.api.nvim_create_autocmd({ "BufAdd", "BufDelete" }, {
         callback = function()
@@ -300,12 +396,26 @@ return {
         dotenv = { glyph = "", hl = "MiniIconsYellow" },
       },
     },
-    init = function()
-      package.preload["nvim-web-devicons"] = function()
-        require("mini.icons").mock_nvim_web_devicons()
-        return package.loaded["nvim-web-devicons"]
-      end
-    end,
+  },
+
+  -- The `nvim-web-devicons` mock that mini.icons used to install via package.preload
+  -- shadowed the real plugin, so it is gone; these overrides carry over the glyphs
+  -- the mini.icons spec above customises.
+  {
+    "nvim-tree/nvim-web-devicons",
+    lazy = true,
+    opts = {
+      override = {
+        keep = { icon = "󰊢", color = "#6e738d", name = "Keep" },
+      },
+      override_by_filename = {
+        [".keep"] = { icon = "󰊢", color = "#6e738d", name = "Keep" },
+        -- The mini.icons entries these replace reached git with empty glyph strings,
+        -- so these two are fresh picks rather than a faithful carry-over.
+        ["devcontainer.json"] = { icon = DOCKER, color = "#89b4fa", name = "Devcontainer" },
+        [".env"] = { icon = CONFIG, color = "#f9e2af", name = "Dotenv" },
+      },
+    },
   },
 
   -- ui components
