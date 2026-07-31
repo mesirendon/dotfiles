@@ -105,6 +105,8 @@ return {
               return require("which-key.extras").expand.buf()
             end,
           },
+          { "<leader>bs", group = "sort" },
+          { "<leader>bg", group = "groups" },
           {
             "<leader>w",
             group = "windows",
