@@ -1,6 +1,6 @@
 -- Root-directory detection, ported from LazyVim's `util.root`.
 -- Resolves the project root from (in order): LSP workspace, `.git`/`lua`
--- markers, then cwd. Used by the picker, terminal, lazygit and gitui keymaps.
+-- markers, then cwd. Used by the picker, explorer, terminal and lazygit keymaps.
 
 ---@class util.root
 ---@overload fun(): string

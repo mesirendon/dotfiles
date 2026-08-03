@@ -308,18 +308,8 @@ map({ "n", "x" }, "<leader>gY", function()
     notify = false,
   })
 end, { desc = "Git Browse (copy)" })
--- <leader>gg / <leader>gG are owned by plugins/gitui.lua (GitUi terminal).
-
--- terminal
-map("n", "<leader>fT", function()
-  Snacks.terminal()
-end, { desc = "Terminal (cwd)" })
-map("n", "<leader>ft", function()
-  Snacks.terminal(nil, { cwd = root() })
-end, { desc = "Terminal (Root Dir)" })
-map({ "n", "t" }, "<c-/>", function()
-  Snacks.terminal.focus(nil, { cwd = root() })
-end, { desc = "Terminal (Root Dir)" })
+-- <leader>gg / <leader>gG (lazygit), the <leader>;* terminal group and <c-/>
+-- are owned by plugins/toggleterm.lua.
 
 -- notifications / scratch
 map("n", "<leader>un", function()

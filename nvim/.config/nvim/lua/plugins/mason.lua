@@ -1,5 +1,5 @@
--- Mason base spec. Tools are appended via `ensure_installed` from ide.lua,
--- markdown.lua and gitui.lua (opts_extend concatenates the lists).
+-- Mason base spec. Tools are appended via `ensure_installed` from ide.lua and
+-- markdown.lua (opts_extend concatenates the lists).
 return {
   {
     "mason-org/mason.nvim",
