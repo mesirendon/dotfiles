@@ -472,14 +472,35 @@ Improves the look of `vim.ui.select`/`vim.ui.input` prompts (used by things like
 
 Beyond the language servers above, these are wired as explicit specs under
 `plugins/`: `mini.surround` + `mini.comment` (`coding.lua`), `mini.pairs` +
-`mini.ai` (`coding.lua`), `gitui` (`gitui.lua`, `<leader>gg`/`<leader>gG`),
-`kulala.nvim` REST client (`rest.lua`, `<leader>R*`), `aerial` (`aerial.lua`),
+`mini.ai` (`coding.lua`), `toggleterm.nvim` (`toggleterm.lua`, `<leader>;*`
+and `lazygit` on `<leader>gg`/`<leader>gG`), `kulala.nvim` REST client (`rest.lua`, `<leader>R*`), `aerial` (`aerial.lua`),
 `render-markdown` + `markdown-preview` (`markdown.lua`), and `claudecode.nvim`
 (`claudecode.lua`).
 
 #### Claude Code (`claudecode.nvim`)
 
 Bridges the Claude Code CLI with Neovim — file context, selection sharing, and diff review. Configured in `plugins/claudecode.lua`. Activate the CLI with `claude` in a terminal; the plugin syncs the active buffer automatically.
+
+#### Terminals (`toggleterm.nvim`)
+
+Terminal management has its own group, `<leader>;` (`plugins/toggleterm.lua`) — deliberately separate from `<leader>t` (tests). Floating is the default and primary direction; splits open at the bottom (height 15) or on the right (40% width).
+
+Terminals **invert** the root-vs-cwd convention used by the picker and explorer: **lowercase = literal cwd**, **uppercase = root dir** (resolved by `util.root`, which — given the sub-project markers in `root_spec` — is the enclosing module inside a monorepo).
+
+| Keymap | Description |
+| --- | --- |
+| `<leader>;f` / `<leader>;F` | Floating terminal (cwd / root dir) |
+| `<leader>;h` / `<leader>;H` | Bottom split terminal (cwd / root dir) |
+| `<leader>;v` / `<leader>;V` | Right split terminal (cwd / root dir) |
+| `<leader>;s` | Select an open terminal (`:TermSelect`) |
+| `<leader>;n` / `<leader>;N` | New terminal, never reuses an existing one (cwd / root dir) |
+| `<Ctrl-/>` | Toggle the floating terminal (cwd), from normal or terminal mode |
+
+Terminals are cached per direction + directory, so pressing the same keymap again toggles the *same* shell instead of spawning a new one. Inside a terminal, `<Esc>` drops to normal mode, `<Ctrl-h/j/k/l>` move between windows, and `q` in normal mode closes it.
+
+#### Lazygit (`<leader>gg` / `<leader>gG`)
+
+`lazygit` runs as a floating toggleterm, opened in the cwd (`<leader>gg`) or in the git root (`<leader>gG`). The `<Esc>`/`q` terminal maps are removed inside this buffer so lazygit receives those keys itself. Installed via Homebrew (`brew "lazygit"` in the `Brewfile`); the keymap warns if the binary is missing.
 
 #### Treesitter Text-Object Navigation
 

@@ -83,6 +83,7 @@ return {
         {
           mode = { "n", "x" },
           { "<leader><tab>", group = "tabs" },
+          { "<leader>;", group = "terminal" },
           { "<leader>c", group = "code" },
           { "<leader>d", group = "debug" },
           { "<leader>f", group = "file/find" },
