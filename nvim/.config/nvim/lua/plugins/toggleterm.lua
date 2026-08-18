@@ -24,7 +24,7 @@ return {
       { "<leader>;v", Term({ direction = "vertical", root = false }), desc = "Right Terminal (cwd)" },
       { "<leader>;V", Term({ direction = "vertical" }), desc = "Right Terminal (Root Dir)" },
       -- management
-      { "<leader>;s", "<cmd>TermSelect<cr>", desc = "Select Terminal" },
+      { "<leader>;s", "<cmd>TermSelect!<cr>", desc = "Select Terminal" },
       {
         "<leader>;n",
         function()
