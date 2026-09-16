@@ -1,6 +1,3 @@
-# Kiro CLI pre block. Keep at the top of this file.
-[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh"
-
 # Powerlevel10k instant prompt
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
@@ -144,20 +141,6 @@ brew_trust_taps() {
   done < <(brew tap)
 }
 
-brew_check_tap() {
-  local tap="${1:?Usage: brew_check_tap <user/repo>}"
-  print "==> Tap metadata (brew tap-info)"
-  brew tap-info "$tap" 2>/dev/null || print "Tap not installed locally"
-  print ""
-  local org="${tap%%/*}"
-  local name="${tap##*/}"
-  local repo="${org}/homebrew-${name}"
-  print "==> GitHub info (gh repo view)"
-  gh repo view "$repo" --json name,description,stargazerCount,updatedAt,openIssueCount \
-    --template '{{.name}}: {{.description}}\nStars: {{.stargazerCount}} | Open issues: {{.openIssueCount}} | Last updated: {{.updatedAt}}\n' \
-    2>/dev/null || print "Could not fetch GitHub info (gh not authenticated or repo not found)"
-}
-
 sysupdate() {
   export HOMEBREW_NO_AUTO_UPDATE=1
   if [[ $OS_FAMILY == linux ]]; then
@@ -179,15 +162,15 @@ mkcd() { mkdir -p -- "$1" && cd -- "$1" || return; }
 vimreset() {
   local hard=0
   case "${1:-}" in
-    --hard | -f) hard=1 ;;
-    "") ;;
-    *)
-      print -u2 "Usage: vimreset [--hard]"
-      return 1
-      ;;
+  --hard | -f) hard=1 ;;
+  "") ;;
+  *)
+    print -u2 "Usage: vimreset [--hard]"
+    return 1
+    ;;
   esac
 
-  if ((!hard)) && pgrep -x nvim >/dev/null 2>&1; then
+  if ((! hard)) && pgrep -x nvim >/dev/null 2>&1; then
     print -u2 "⚠️  Neovim is still running; it would overwrite the restored ShaDa on exit."
     print -u2 "    Quit all instances first, or use 'vimreset --hard' to reset anyway."
     return 1
@@ -197,7 +180,7 @@ vimreset() {
   local shada="$state/shada/main.shada"
   local snapshot=""
 
-  if ((!hard)) && [[ -f "$shada" ]]; then
+  if ((! hard)) && [[ -f "$shada" ]]; then
     snapshot="$(mktemp -t nvim-shada)" || return 1
     if ! cp "$shada" "$snapshot"; then
       command rm -f "$snapshot"
@@ -230,10 +213,8 @@ vimreset() {
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-# Created by `pipx` on 2025-10-21 13:20:47
-export PATH="$PATH:/home/mesi/.local/bin"
-
 eval "$(zoxide init zsh)"
 
-# Kiro CLI post block. Keep at the bottom of this file.
-[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh"
+# Created by `pipx` on 2025-10-21 13:20:47
+export PATH="$PATH:/home/mesi/.local/bin"
+export PATH="$HOME/.local/bin:$PATH"

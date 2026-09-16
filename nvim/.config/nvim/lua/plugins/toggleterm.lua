@@ -81,7 +81,7 @@ return {
           return math.floor(vim.o.lines * 0.85)
         end,
       },
-      shade_terminals = false, -- catppuccin already themes the terminal bg
+      shade_terminals = false, -- soviet.nvim already themes the terminal bg
       start_in_insert = true,
       persist_size = true,
       persist_mode = false,

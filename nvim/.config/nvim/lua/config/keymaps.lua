@@ -354,7 +354,16 @@ Snacks.toggle
   .option("conceallevel", { off = 0, on = vim.o.conceallevel > 0 and vim.o.conceallevel or 2, name = "Conceal Level" })
   :map("<leader>uc")
 Snacks.toggle.treesitter():map("<leader>uT")
-Snacks.toggle.option("background", { off = "light", on = "dark", name = "Dark Background" }):map("<leader>ub")
+-- Swap the soviet.nvim variant (background + colorscheme), not just 'background'.
+Snacks.toggle({
+  name = "Dark Theme (soviet)",
+  get = function()
+    return vim.o.background == "dark"
+  end,
+  set = function(state)
+    vim.cmd(state and "ThemeDark" or "ThemeLight")
+  end,
+}):map("<leader>ub")
 Snacks.toggle.dim():map("<leader>uD")
 Snacks.toggle.animate():map("<leader>ua")
 Snacks.toggle.indent():map("<leader>ug")

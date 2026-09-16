@@ -25,7 +25,7 @@
       - [Color Highlighting (`nvim-colorizer`)](#color-highlighting-nvim-colorizer)
       - [Image Rendering (`image.nvim`)](#image-rendering-imagenvim)
       - [Snippets (`LuaSnip`)](#snippets-luasnip)
-      - [Colorscheme (`catppuccin`)](#colorscheme-catppuccin)
+      - [Colorscheme (`soviet.nvim`)](#colorscheme-sovietnvim)
       - [Dashboard (`snacks.nvim`)](#dashboard-snacksnvim)
       - [UI Select/Input (`dressing.nvim`)](#ui-selectinput-dressingnvim)
       - [Bundled Editing Features](#bundled-editing-features)
@@ -101,7 +101,7 @@ lives under `nvim/.config/nvim/lua/`.
 | Picker / UI | Snacks (picker, explorer, dashboard), which-key, lualine, bufferline, noice |
 | LSP | native `vim.lsp.config` / `vim.lsp.enable` + Mason |
 | Treesitter | `arborist` (nvim-treesitter disabled) |
-| Theme | `catppuccin-mocha` |
+| Theme | `soviet.nvim` (`soviet-dark` / `soviet-light`) |
 
 **Load order.** `init.lua` loads options (which set `<leader>`) *before*
 lazy.nvim, then keymaps/autocmds load on `VeryLazy` once the UI is ready:
@@ -456,9 +456,17 @@ Renders images inline using the Kitty terminal protocol. Supported formats: `png
 
 Custom snippets live in `nvim/.config/nvim/lua/snippets/`. Go template snippets are in `snippets/gotmpl.lua`. LuaSnip is the snippet engine behind `blink.cmp`, and community snippets (`friendly-snippets`) are loaded too — all surfaced through the blink completion menu.
 
-#### Colorscheme (`catppuccin`)
+#### Colorscheme (`soviet.nvim`)
 
-`catppuccin-mocha` flavour, set as the default colorscheme in `plugins/colorscheme.lua`.
+Set in `plugins/colorscheme.lua`. Ships both `soviet-dark` and `soviet-light`; the
+last-used variant is remembered across sessions (`stdpath("state")/soviet-variant`).
+
+| Command | Action |
+| --- | --- |
+| `:ThemeToggle` | Toggle dark ↔ light |
+| `:ThemeDark` | Force `soviet-dark` |
+| `:ThemeLight` | Force `soviet-light` |
+| `<leader>ub` | Toggle dark theme (same as `:ThemeToggle`) |
 
 #### Dashboard (`snacks.nvim`)
 

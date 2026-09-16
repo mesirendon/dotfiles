@@ -27,7 +27,7 @@ require("lazy").setup({
     -- always use the latest git commit
     version = false,
   },
-  install = { colorscheme = { "catppuccin" } },
+  install = { colorscheme = { "soviet-dark" } },
   checker = {
     enabled = true, -- check for plugin updates periodically
     notify = false, -- notify on update
