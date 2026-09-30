@@ -33,13 +33,91 @@ local adapters = {
   {
     spec = "nvim-neotest/neotest-jest",
     build = function()
-      return require("neotest-jest")({ jestCommand = "npm test --" })
+      local jest_configs = { "jest.config.js", "jest.config.ts", "jest.config.mjs", "jest.config.cjs", "jest.config.json" }
+
+      -- Directory of the nearest package.json: jest must run from the package,
+      -- not nvim's cwd (a monorepo root would run the wrong `test` script).
+      local function package_root(path)
+        return vim.fs.root(path, "package.json")
+      end
+
+      return require("neotest-jest")({
+        -- Let the adapter resolve node_modules/.bin/jest itself instead of
+        -- `npm test --`, which drags in whatever the package's script adds.
+        cwd = function(path)
+          return path and package_root(path) or vim.fn.getcwd()
+        end,
+        -- The default only claims files when package.json lists `jest`
+        -- directly (missing transitive installs from shared CI configs), and
+        -- errors when nvim's cwd has no package.json. Look at the package
+        -- itself instead: a jest config or an installed jest binary.
+        isTestFile = function(file_path)
+          if not file_path or not file_path:match("%.test%.[jt]sx?$") and not file_path:match("%.spec%.[jt]sx?$") then
+            return false
+          end
+          local root = package_root(file_path)
+          if not root then
+            return false
+          end
+          for _, name in ipairs(jest_configs) do
+            if vim.uv.fs_stat(root .. "/" .. name) then
+              return true
+            end
+          end
+          return vim.uv.fs_stat(root .. "/node_modules/.bin/jest") ~= nil
+            and not vim.uv.fs_stat(root .. "/node_modules/.bin/vitest")
+        end,
+      })
     end,
   },
   {
     spec = "marilari88/neotest-vitest",
     build = function()
-      return require("neotest-vitest")
+      local vitest = require("neotest-vitest")
+
+      -- Vitest 4+ joins describe/test names with " > " when matching
+      -- --testNamePattern, but the adapter joins them with a space, so running
+      -- or debugging a single test skips everything. Rebuild the pattern to
+      -- accept either separator (keeps Vitest <= 3 working too).
+      local function escape(s)
+        return (s:gsub("[%^%$%(%)%[%]%{%}%.%*%+%-%?|\\/]", "\\%0"):gsub(" ", "\\s"))
+      end
+
+      local function name_pattern(tree)
+        local names = {}
+        local node = tree
+        while node and node:data().type ~= "file" and node:data().type ~= "dir" do
+          table.insert(names, 1, escape(node:data().name))
+          node = node:parent()
+        end
+        if #names == 0 then
+          return nil
+        end
+        local pattern = "^\\s?" .. table.concat(names, "(?:\\s>\\s|\\s)")
+        return tree:data().type == "test" and pattern .. "$" or pattern
+      end
+
+      local function rewrite(list, pattern)
+        for i, arg in ipairs(list or {}) do
+          if arg:find("^%-%-testNamePattern=") then
+            list[i] = "--testNamePattern=" .. pattern
+          end
+        end
+      end
+
+      local build_spec = vitest.build_spec
+      vitest.build_spec = function(args)
+        local spec = build_spec(args)
+        local pattern = spec and args.tree and name_pattern(args.tree)
+        if pattern then
+          rewrite(spec.command, pattern)
+          -- The dap strategy copies the command into its own args list.
+          rewrite(spec.strategy and spec.strategy.args, pattern)
+        end
+        return spec
+      end
+
+      return vitest
     end,
   },
   {

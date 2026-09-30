@@ -146,16 +146,41 @@ return {
         },
       }
 
+      -- Plain `node` only strips types: it can't resolve extensionless imports,
+      -- enums or tsconfig paths, so TS files run through tsx instead. Prefer the
+      -- project's own tsx (nearest node_modules up the tree), else `npx tsx`.
+      local function local_tsx()
+        for dir in vim.fs.parents(vim.api.nvim_buf_get_name(0)) do
+          local bin = dir .. "/node_modules/.bin/tsx"
+          if vim.fn.executable(bin) == 1 then
+            return bin
+          end
+        end
+      end
+
+      local skip_files = { "<node_internals>/**", "**/node_modules/**" }
+
       for _, ft in ipairs({ "javascript", "typescript", "javascriptreact", "typescriptreact" }) do
+        local launch = {
+          type = "pwa-node",
+          request = "launch",
+          name = "Launch Current File",
+          program = "${file}",
+          cwd = "${workspaceFolder}",
+          sourceMaps = true,
+          skipFiles = skip_files,
+        }
+        if ft:match("^typescript") then
+          launch.runtimeExecutable = function()
+            return local_tsx() or "npx"
+          end
+          launch.runtimeArgs = function()
+            return local_tsx() and {} or { "--yes", "tsx" }
+          end
+        end
+
         dap.configurations[ft] = {
-          {
-            type = "pwa-node",
-            request = "launch",
-            name = "Launch Current File",
-            program = "${file}",
-            cwd = "${workspaceFolder}",
-            sourceMaps = true,
-          },
+          launch,
           {
             type = "pwa-node",
             request = "attach",

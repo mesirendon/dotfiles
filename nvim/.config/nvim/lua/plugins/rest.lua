@@ -6,7 +6,7 @@ vim.filetype.add({
 
 return {
   {
-    "mistweaverco/kulala.nvim",
+    "andycowan/kulala.nvim",
     ft = "http",
     keys = {
       { "<leader>R", "", desc = "+Rest" },
