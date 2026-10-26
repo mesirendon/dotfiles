@@ -51,7 +51,13 @@ local function setup_test_maps()
   end, { desc = "📍 Test Run: Last" })
 
   map("n", "<leader>tv", function()
-    require("neotest").run.run({ suite = false, strategy = "integrated", args = { "-v" } })
+    -- jest/vitest read `-v` as --version, so they need their own spelling
+    local verbose = { "-v" }
+    if vim.bo.filetype:match("^javascript") or vim.bo.filetype:match("^typescript") then
+      local root = vim.fs.root(0, "package.json") or vim.uv.cwd()
+      verbose = vim.uv.fs_stat(root .. "/node_modules/.bin/vitest") and { "--reporter=verbose" } or { "--verbose" }
+    end
+    require("neotest").run.run({ suite = false, strategy = "integrated", args = verbose })
   end, { desc = "📃 Test Run: Nearest (verbose)" })
 
   map("n", "<leader>tS", function()
@@ -183,7 +189,103 @@ M.ft_extras = {
       M.term_run({ "go", "test", dir, "-count=1", "-update" }, "go test (pkg -update)")
     end, { desc = "📦 Go Test: Package (-update snapshots)", buffer = buf })
   end,
+
+  python = function(buf)
+    local py = require("util.python")
+
+    local function run(argv, name)
+      local root = py.project_root(vim.api.nvim_buf_get_name(buf))
+      M.term_run("cd " .. vim.fn.shellescape(root) .. " && " .. table.concat(argv, " "), name)
+    end
+
+    map("n", "<leader>tA", function()
+      vim.ui.input({ prompt = "Markers (optional, -m expression): " }, function(input)
+        local argv = { py.python(), "-m", "pytest", "--cov", "--cov-report=term-missing" }
+        if input and input:match("%S") then
+          table.insert(argv, "-m")
+          table.insert(argv, vim.fn.shellescape(input))
+        end
+        run(argv, "pytest (coverage)")
+      end)
+    end, { desc = "🔦 Python Test Run: All (coverage, optional -m)", buffer = buf })
+
+    map("n", "<leader>tC", function()
+      run({ py.python(), "-m", "coverage", "report", "-m" }, "python coverage summary")
+    end, { desc = "📊 Coverage: Summary (.coverage)", buffer = buf })
+
+    map("n", "<leader>tH", function()
+      local root = py.project_root(vim.api.nvim_buf_get_name(buf))
+      vim.system({ py.python(), "-m", "coverage", "html" }, { cwd = root }, function(out)
+        vim.schedule(function()
+          if out.code ~= 0 then
+            vim.notify(out.stderr ~= "" and out.stderr or out.stdout, vim.log.levels.ERROR, { title = "coverage" })
+            return
+          end
+          vim.ui.open(root .. "/htmlcov/index.html")
+        end)
+      end)
+    end, { desc = "🖼️ Coverage: HTML (browser)", buffer = buf })
+
+    map("n", "<leader>tu", function()
+      local file = vim.api.nvim_buf_get_name(buf)
+      run({ py.python(), "-m", "pytest", vim.fn.shellescape(file), "--snapshot-update" }, "pytest (-snapshot-update)")
+    end, { desc = "📸 Python Test: File (--snapshot-update)", buffer = buf })
+  end,
 }
+
+local function js_extras(buf)
+  local function package_root()
+    return vim.fs.root(vim.api.nvim_buf_get_name(buf), "package.json") or vim.uv.cwd()
+  end
+
+  local function runner(root)
+    if vim.uv.fs_stat(root .. "/node_modules/.bin/vitest") then
+      return "vitest"
+    end
+    return "jest"
+  end
+
+  local function run(args, name)
+    local root = package_root()
+    local tool = runner(root)
+    local argv = { "npx", tool }
+    if tool == "vitest" then
+      table.insert(argv, "run")
+    end
+    vim.list_extend(argv, args[tool])
+    M.term_run("cd " .. vim.fn.shellescape(root) .. " && " .. table.concat(argv, " "), name)
+  end
+
+  map("n", "<leader>tA", function()
+    run({ vitest = { "--coverage" }, jest = { "--coverage" } }, "js test (coverage)")
+  end, { desc = "🔦 JS Test Run: All (coverage)", buffer = buf })
+
+  map("n", "<leader>tC", function()
+    run({
+      vitest = { "--coverage", "--coverage.reporter=text-summary" },
+      jest = { "--coverage", "--coverageReporters=text-summary" },
+    }, "js coverage summary")
+  end, { desc = "📊 Coverage: Summary (re-runs suite)", buffer = buf })
+
+  map("n", "<leader>tH", function()
+    local root = package_root()
+    for _, rel in ipairs({ "/coverage/index.html", "/coverage/lcov-report/index.html" }) do
+      if vim.uv.fs_stat(root .. rel) then
+        return vim.ui.open(root .. rel)
+      end
+    end
+    vim.notify("No HTML coverage report; run <leader>tA first", vim.log.levels.WARN, { title = "coverage" })
+  end, { desc = "🖼️ Coverage: HTML (browser)", buffer = buf })
+
+  map("n", "<leader>tu", function()
+    local file = vim.fn.shellescape(vim.api.nvim_buf_get_name(buf))
+    run({ vitest = { file, "-u" }, jest = { file, "-u" } }, "js test (-u snapshots)")
+  end, { desc = "📸 JS Test: File (-u snapshots)", buffer = buf })
+end
+
+for _, ft in ipairs({ "javascript", "typescript", "javascriptreact", "typescriptreact" }) do
+  M.ft_extras[ft] = js_extras
+end
 
 function M.setup()
   setup_test_maps()

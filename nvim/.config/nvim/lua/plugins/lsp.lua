@@ -1,5 +1,7 @@
 -- LSP base spec. Servers are supplied by plugins/ide.lua (opts.servers);
 -- the attach keymaps, capabilities and diagnostics live in config/lsp.lua.
+-- A server may set `attach = function(client, buf)`; unlike `on_attach` it
+-- doesn't replace the one nvim-lspconfig ships.
 return {
   {
     "neovim/nvim-lspconfig",
@@ -24,7 +26,20 @@ return {
       for server, cfg in pairs(opts.servers) do
         local enabled = cfg ~= false and not (type(cfg) == "table" and cfg.enabled == false)
         if enabled then
-          cfg = type(cfg) == "table" and cfg or {}
+          cfg = type(cfg) == "table" and vim.deepcopy(cfg) or {}
+          local attach = cfg.attach
+          cfg.attach = nil
+          if attach then
+            vim.api.nvim_create_autocmd("LspAttach", {
+              group = vim.api.nvim_create_augroup("config_lsp_attach_" .. server, { clear = true }),
+              callback = function(args)
+                local client = vim.lsp.get_client_by_id(args.data.client_id)
+                if client and client.name == server then
+                  attach(client, args.buf)
+                end
+              end,
+            })
+          end
           vim.lsp.config(server, cfg)
           ensure[#ensure + 1] = server
         end
