@@ -4,6 +4,26 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export HOMEBREW_NO_AUTO_UPDATE=1
 BOOTSTRAP_START=$SECONDS
 
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") [--server]
+
+  --server    Headless install: skip Homebrew casks (GUI apps, fonts) and
+              Ghostty (install, config and shaders).
+  -h, --help  Show this help.
+EOF
+}
+
+SERVER=false
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --server) SERVER=true ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Unknown option: $1" >&2; usage >&2; exit 1 ;;
+  esac
+  shift
+done
+
 timer() {
   local label="$1"; shift
   local start=$SECONDS
@@ -11,6 +31,15 @@ timer() {
   "$@" || rc=$?
   printf '  ⏱  %s: %ds\n' "$label" "$(( SECONDS - start ))"
   return $rc
+}
+
+bundle() {
+  local file="$1"
+  if [[ "$SERVER" == true ]]; then
+    { grep -v '^[[:space:]]*cask ' "$file" || true; } | brew bundle --file=- --verbose
+  else
+    brew bundle --file="$file" --verbose
+  fi
 }
 
 sudo -v || {
@@ -39,6 +68,9 @@ else
 fi
 
 echo "===> Platform detected: $PLATFORM ($ARCH)"
+if [[ "$SERVER" == true ]]; then
+  echo "===> 🖥️  Server mode: skipping casks and Ghostty"
+fi
 
 if [[ "$PLATFORM" == "Debian" ]]; then
   echo "===> 🐧 Installing Debian/Ubuntu Prerequisites"
@@ -82,10 +114,13 @@ fi
 eval "$("$BREW_BIN" shellenv)"
 
 echo "===> 🍻 Installing Brew Bundle"
-timer "brew bundle" brew bundle --file="$REPO_DIR/Brewfile" --verbose || echo "⚠️  Some Homebrew packages failed — check output above before continuing"
+timer "brew bundle" bundle "$REPO_DIR/Brewfile" || echo "⚠️  Some Homebrew packages failed — check output above before continuing"
 
 echo "===> 📥 Stowing dotfiles (dry-run)"
-DOTFILES=("git" "zsh" "p10k" "nvim" "bin" "taskwarrior" "ghostty" "zellij")
+DOTFILES=("git" "zsh" "p10k" "nvim" "bin" "taskwarrior" "zellij")
+if [[ "$SERVER" == false ]]; then
+  DOTFILES+=("ghostty")
+fi
 (cd "$REPO_DIR" && stow -nv "${DOTFILES[@]}") || true
 read -p "Proceed stowing dotfiles? [y/N] " ans
 if [[ "$ans" =~ ^[Yy]$ ]]; then
@@ -94,8 +129,8 @@ fi
 
 if [[ "$PLATFORM" == "macos" ]]; then
   echo "==> 🍎 Brew bundle (mac)"
-  timer "brew bundle (mac)" brew bundle --file="$REPO_DIR/Brewfile.mac" --verbose || echo "⚠️  Some macOS Homebrew packages failed — check output above before continuing"
-elif [[ "$PLATFORM" == "Debian" ]]; then
+  timer "brew bundle (mac)" bundle "$REPO_DIR/Brewfile.mac" || echo "⚠️  Some macOS Homebrew packages failed — check output above before continuing"
+elif [[ "$PLATFORM" == "Debian" && "$SERVER" == false ]]; then
   timer "ghostty-linux" "$REPO_DIR/scripts/ghostty-linux.sh" || echo "⚠️  Ghostty Linux install failed — check output above"
 fi
 
@@ -103,7 +138,9 @@ echo "===> 💿 Installing Oh My ZSH"
 timer "oh-my-zsh" "$REPO_DIR/scripts/oh-my-zsh.sh"
 
 echo "===> 🚀 Running post-install scripts"
-timer "ghostty" "$REPO_DIR/scripts/ghostty.sh" || echo "⚠️  Ghostty config failed — check output above"
+if [[ "$SERVER" == false ]]; then
+  timer "ghostty" "$REPO_DIR/scripts/ghostty.sh" || echo "⚠️  Ghostty config failed — check output above"
+fi
 timer "zellij" "$REPO_DIR/scripts/zellij.sh" || echo "⚠️  Zellij setup failed — check output above"
 timer "claude-code" "$REPO_DIR/scripts/claude-code.sh" || echo "⚠️  Claude Code install failed — check output above"
 timer "luarocks" "$REPO_DIR/scripts/luarocks.sh" || echo "⚠️  luarocks 5.1 config failed — check output above"

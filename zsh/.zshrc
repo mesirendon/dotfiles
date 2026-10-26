@@ -218,3 +218,20 @@ eval "$(zoxide init zsh)"
 # Created by `pipx` on 2025-10-21 13:20:47
 export PATH="$PATH:/home/mesi/.local/bin"
 export PATH="$HOME/.local/bin:$PATH"
+
+# fnm
+FNM_PATH="/opt/homebrew/opt/fnm/bin"
+if [ -d "$FNM_PATH" ]; then
+  eval "$(fnm env --shell zsh)"
+fi
+
+# >>> juliaup initialize >>>
+
+# !! Contents within this block are managed by juliaup !!
+
+path=('/Users/mesirendon/.juliaup/bin' $path)
+export PATH
+# Tab completion for juliaup and julia channel selection
+[ -f "/Users/mesirendon/.julia/juliaup/completions/zsh.zsh" ] && source "/Users/mesirendon/.julia/juliaup/completions/zsh.zsh"
+
+# <<< juliaup initialize <<<

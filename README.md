@@ -78,6 +78,13 @@ welcome, provided they do not conflict with my personal setup.
    ./bootstrap.sh
    ```
 
+   On a headless server, pass `--server` to skip Homebrew casks (GUI apps and
+   fonts) and Ghostty:
+
+   ```bash
+   ./bootstrap.sh --server
+   ```
+
 4. Restart your system:
 
    ```bash
